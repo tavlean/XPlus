@@ -1,6 +1,6 @@
 # XweetTab
 
-A Chrome extension that automatically opens X (Twitter) post links in new tabs.
+A Chrome extension that automatically opens X (Twitter) post links in new tabs when clicked on the time of the post.
 
 ## Features
 
