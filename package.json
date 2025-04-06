@@ -1,0 +1,21 @@
+{
+  "name": "xweettab",
+  "version": "1.0.0",
+  "description": "Chrome extension that opens X (Twitter) post links in new tabs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean && mkdir -p dist",
+    "dev": "mkdir -p src/chrome/assets && cp -r shared-assets/* src/chrome/assets/",
+    "build": "npm run dev && cd src/chrome && zip -r ../../dist/xweettab.zip *"
+  },
+  "keywords": [
+    "chrome-extension",
+    "twitter",
+    "x",
+    "tabs"
+  ],
+  "author": "",
+  "license": "MIT"
+} 
