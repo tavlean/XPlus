@@ -48,17 +48,29 @@ The extension is built using Manifest V3 and follows Chrome's extension guidelin
 ├── LICENSE                # MIT License
 ├── /src/                  # Extension implementation files
 │   └── /chrome/           # Chrome extension files
-├── /shared-assets/        # Shared icons and images
-│   ├── icon16.png         # 16x16 icon
-│   ├── icon48.png         # 48x48 icon
-│   └── icon128.png        # 128x128 icon
+│       ├── assets/        # Extension icons
+│       │   ├── icon16.png # 16x16 icon
+│       │   ├── icon48.png # 48x48 icon
+│       │   └── icon128.png # 128x128 icon
+│       ├── manifest.json  # Extension manifest (Manifest V3)
+│       ├── background.js  # Service worker for extension lifecycle
+│       └── content.js     # Content script for page interaction
+├── /shared-assets/        # Shared icons and images (source)
+│   ├── icon16.png         # 16x16 icon source
+│   ├── icon48.png         # 48x48 icon source
+│   └── icon128.png        # 128x128 icon source
+├── /site/                 # Website files for extension landing page
+│   ├── index.html         # Main landing page
+│   ├── privacy.html       # Privacy policy page
+│   ├── styles.css         # Website styling
+│   └── screenshot.png     # Website screenshot
 ├── /screenshots/          # Store screenshots
 │   └── /chrome/           # Chrome Web Store screenshots
 ├── /docs/                 # Additional documentation
 │   └── CONTRIBUTING.md    # Contribution guidelines
+├── /dist/                 # Build artifacts (generated, not in repo)
 ├── .gitignore             # Git ignore file
-├── package.json           # NPM package configuration
-└── /dist/                 # Build artifacts (generated, not in repo)
+└── package.json           # NPM package configuration
 ```
 
 ### Building
