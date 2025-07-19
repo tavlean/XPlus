@@ -1,4 +1,4 @@
-# XweetTab
+# XTab
 
 A Chrome extension that automatically opens X (Twitter) post links and notifications in new tabs when clicked.
 
@@ -24,7 +24,7 @@ A Chrome extension that automatically opens X (Twitter) post links and notificat
 
 1. Clone this repository
 2. Run `npm run build` to generate the distribution file
-3. Find the generated `xweettab.zip` in the `dist` directory
+3. Find the generated `xtab.zip` in the `dist` directory
 4. Open Chrome and navigate to `chrome://extensions/`
 5. Enable "Developer mode" in the top right
 6. Drag and drop the zip file into the extensions page
@@ -44,7 +44,6 @@ The extension is built using Manifest V3 and follows Chrome's extension guidelin
 ### Project Structure
 
 ```
-XTabber/
 ├── README.md              # This file
 ├── LICENSE                # MIT License
 ├── /src/                  # Extension implementation files
