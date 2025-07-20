@@ -1,6 +1,6 @@
 # XTab
 
-A Chrome extension that automatically opens X (Twitter) post links and notifications in new tabs when clicked.
+A Chrome extension that automatically opens X/Twitter post links and notifications in new tabs when clicked.
 
 ## Features
 
