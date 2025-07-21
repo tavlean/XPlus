@@ -4,11 +4,11 @@ A Chrome extension that automatically opens X/Twitter post links and notificatio
 
 ## Features
 
-- Automatically opens X post links in new tabs when clicking on post timestamps
-- Automatically opens notifications in new tabs when clicking the notifications link
-- Works with dynamically loaded content
-- Only affects specific links (posts and notifications), leaving other links unchanged
-- Lightweight and efficient
+-   Automatically opens X post links in new tabs when clicking on post timestamps
+-   Automatically opens notifications in new tabs when clicking the notifications link
+-   Works with dynamically loaded content
+-   Only affects specific links (posts and notifications), leaving other links unchanged
+-   Lightweight and efficient
 
 ## Installation
 
@@ -28,14 +28,15 @@ A Chrome extension that automatically opens X/Twitter post links and notificatio
 4. Open Chrome and navigate to `chrome://extensions/`
 5. Enable "Developer mode" in the top right
 6. Drag and drop the zip file into the extensions page
-   - Alternatively, you can unzip the file and load it using "Load unpacked"
+    - Alternatively, you can unzip the file and load it using "Load unpacked"
 
 ## Usage
 
 Once installed, the extension will automatically:
-- Detect post links on X (Twitter) and open them in new tabs when clicking on post timestamps
-- Detect the notifications link in the left sidebar and open it in a new tab when clicked
-- Work with both static and dynamically loaded content
+
+-   Detect post links on X (Twitter) and open them in new tabs when clicking on post timestamps
+-   Detect the notifications link in the left sidebar and open it in a new tab when clicked
+-   Work with both static and dynamically loaded content
 
 ## Development
 
@@ -92,4 +93,4 @@ Build files are generated in the `dist/` directory and are ready for submission 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

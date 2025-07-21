@@ -27,11 +27,11 @@ Follow the instructions in the [README.md](../README.md) file to set up your dev
 
 ## Coding Standards
 
-- Follow the existing code style
-- Write meaningful commit messages
-- Include appropriate documentation
-- Add tests for new features when appropriate
+-   Follow the existing code style
+-   Write meaningful commit messages
+-   Include appropriate documentation
+-   Add tests for new features when appropriate
 
 ## License
 
-By contributing to XweetTab, you agree that your contributions will be licensed under the project's [MIT License](../LICENSE). 
+By contributing to XweetTab, you agree that your contributions will be licensed under the project's [MIT License](../LICENSE).
