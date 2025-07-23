@@ -1,1 +1,1 @@
-../../src/common/background.js
+../common/background.js

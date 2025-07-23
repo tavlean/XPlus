@@ -1,1 +1,1 @@
-../../src/common/content.js
+../common/content.js
