@@ -1,12 +1,12 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "XTab",
     "version": "1.0.5",
     "description": "Open X/Twitter post links and notifications in new tabs",
-    "permissions": ["tabs", "https://*.x.com/*"],
+    "permissions": ["tabs"],
+    "host_permissions": ["https://*.x.com/*"],
     "background": {
-        "scripts": ["background.js"],
-        "persistent": false
+        "service_worker": "background.js"
     },
     "content_scripts": [
         {
