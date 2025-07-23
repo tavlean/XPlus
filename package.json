@@ -1,17 +1,23 @@
 {
     "name": "xtab",
     "version": "1.0.5",
-    "description": "Chrome extension that opens X (Twitter) post links and notifications in new tabs",
+    "description": "Browser extension that opens X (Twitter) post links and notifications in new tabs",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "clean": "rm -rf dist",
         "prebuild": "npm run clean && mkdir -p dist",
-        "dev": "mkdir -p src/chrome/assets && cp -r shared-assets/* src/chrome/assets/",
-        "build": "npm run dev && cd src/chrome && zip -r ../../dist/xtab.zip *"
+        "dev": "npm run dev:chrome && npm run dev:firefox",
+        "dev:chrome": "mkdir -p src/chrome/assets && cp -r shared-assets/* src/chrome/assets/",
+        "dev:firefox": "mkdir -p src/firefox/assets && cp -r shared-assets/* src/firefox/assets/",
+        "build": "npm run build:chrome && npm run build:firefox",
+        "build:chrome": "npm run dev:chrome && cd src/chrome && zip -r ../../dist/xtab-chrome.zip *",
+        "build:firefox": "npm run dev:firefox && cd src/firefox && zip -r ../../dist/xtab-firefox.zip *"
     },
     "keywords": [
         "chrome-extension",
+        "firefox-extension",
+        "browser-extension",
         "twitter",
         "x",
         "tabs"
