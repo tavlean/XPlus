@@ -1,6 +1,6 @@
-# Contributing to XweetTab
+# Contributing to XTab
 
-Thank you for considering contributing to XweetTab! This document provides guidelines and instructions for contributing to the project.
+Thank you for considering contributing to XTab! This document provides guidelines and instructions for contributing to the project.
 
 ## Code of Conduct
 
@@ -34,4 +34,4 @@ Follow the instructions in the [README.md](../README.md) file to set up your dev
 
 ## License
 
-By contributing to XweetTab, you agree that your contributions will be licensed under the project's [MIT License](../LICENSE).
+By contributing to XTab, you agree that your contributions will be licensed under the project's [MIT License](../LICENSE).
