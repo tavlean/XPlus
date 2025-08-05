@@ -19,27 +19,24 @@
     </head>
     <body>
         <header>
-            <img
-                src="screenshot.png"
-                alt="XTab extension in action"
-                class="hero-screenshot"
-            />
+            <a href="#" class="store-link">
+                <img
+                    src="screenshot.png"
+                    alt="XTab extension in action"
+                    class="hero-screenshot"
+                />
+            </a>
             <div class="header-content">
-                <p class="tagline">Browser Extension</p>
+                <p class="badge">Browser Extension</p>
                 <h1>XTab</h1>
                 <p class="tagline">
                     Opens X/Twitter posts and notifications in new tabs by default
                 </p>
                 <div class="buttons">
                     <a
-                        href="https://chromewebstore.google.com/detail/xtab/fifdmeckddldhjkkfbpalfcbakgjkiil"
-                        class="btn btn-primary"
-                        >Install for Chrome</a
-                    >
-                    <a
-                        href="https://addons.mozilla.org/en-US/firefox/addon/x-tab/"
-                        class="btn btn-secondary"
-                        >Install for Firefox</a
+                        href="#"
+                        class="store-link btn btn-primary"
+                        >Install Extension</a
                     >
                 </div>
             </div>
@@ -63,5 +60,26 @@
             <a href="privacy.html">Privacy Policy</a>
             <a href="https://github.com/tavlean/XTab">GitHub</a>
         </footer>
+
+        <script>
+            function updateStoreLinks() {
+                const isFirefox = navigator.userAgent.includes("Firefox/");
+                const firefoxUrl = "https://addons.mozilla.org/en-US/firefox/addon/x-tab/";
+                const chromeUrl = "https://chromewebstore.google.com/detail/xtab/fifdmeckddldhjkkfbpalfcbakgjkiil";
+
+                const links = document.querySelectorAll('.store-link');
+                const url = isFirefox ? firefoxUrl : chromeUrl;
+                const text = isFirefox ? "Install from Firefox Store" : "Install from Chrome Store";
+
+                links.forEach(link => {
+                    link.href = url;
+                    if (link.classList.contains('btn')) {
+                        link.textContent = text;
+                    }
+                });
+            }
+
+            updateStoreLinks();
+        </script>
     </body>
 </html>

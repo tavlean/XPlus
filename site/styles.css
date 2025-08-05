@@ -42,7 +42,7 @@ header {
     height: auto;
     border-radius: 2rem;
     box-shadow: var(--shadow);
-    border: 6px solid white;
+    border: 8px solid white;
 }
 .header-content {
     display: flex;
@@ -50,6 +50,16 @@ header {
     align-items: center;
     text-align: center;
     gap: 6px;
+}
+
+.badge {
+    border-radius: 9999px;
+    background-color: #f0fdf4;
+    padding: 0.25rem 0.75rem;
+    font-size: 15px;
+    font-weight: 500;
+    color: #15803d;
+    border: 1px solid #86efac;
 }
 
 h1 {
