@@ -19,11 +19,15 @@
     </head>
     <body>
         <header>
-            <a href="#" class="store-link">
+            <a
+                href="#"
+                class="store-link"
+            >
                 <img
                     src="screenshot.png"
                     alt="XTab extension in action"
                     class="hero-screenshot"
+                    fetchpriority="high"
                 />
             </a>
             <div class="header-content">
@@ -32,13 +36,11 @@
                 <p class="tagline">
                     Opens X/Twitter posts and notifications in new tabs by default
                 </p>
-                <div class="buttons">
-                    <a
-                        href="#"
-                        class="store-link btn btn-primary"
-                        >Install Extension</a
-                    >
-                </div>
+                <a
+                    href="#"
+                    class="store-link btn btn-primary"
+                    >Install Extension</a
+                >
             </div>
         </header>
 
@@ -65,15 +67,16 @@
             function updateStoreLinks() {
                 const isFirefox = navigator.userAgent.includes("Firefox/");
                 const firefoxUrl = "https://addons.mozilla.org/en-US/firefox/addon/x-tab/";
-                const chromeUrl = "https://chromewebstore.google.com/detail/xtab/fifdmeckddldhjkkfbpalfcbakgjkiil";
+                const chromeUrl =
+                    "https://chromewebstore.google.com/detail/xtab/fifdmeckddldhjkkfbpalfcbakgjkiil";
 
-                const links = document.querySelectorAll('.store-link');
+                const links = document.querySelectorAll(".store-link");
                 const url = isFirefox ? firefoxUrl : chromeUrl;
                 const text = isFirefox ? "Install from Firefox Store" : "Install from Chrome Store";
 
-                links.forEach(link => {
+                links.forEach((link) => {
                     link.href = url;
-                    if (link.classList.contains('btn')) {
+                    if (link.classList.contains("btn")) {
                         link.textContent = text;
                     }
                 });
