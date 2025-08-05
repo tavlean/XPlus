@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "XTab",
+    "name": "Xtab",
     "version": "1.0.5",
     "description": "Open X/Twitter post links and notifications in new tabs",
     "permissions": ["tabs"],

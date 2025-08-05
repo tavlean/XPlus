@@ -1,4 +1,4 @@
-# XTab
+# Xtab
 
 A cross-browser extension that automatically opens X/Twitter post links and notifications in new tabs when clicked. Supports both Chrome and Firefox.
 
@@ -135,8 +135,9 @@ npm run clean
 ```
 
 Build files are generated in the `dist/` directory:
-- `xtab-chrome.zip` - Ready for submission to the Chrome Web Store
-- `xtab-firefox.zip` - Ready for submission to the Firefox Add-ons store
+
+-   `xtab-chrome.zip` - Ready for submission to the Chrome Web Store
+-   `xtab-firefox.zip` - Ready for submission to the Firefox Add-ons store
 
 ## License
 
