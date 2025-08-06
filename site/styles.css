@@ -142,7 +142,7 @@ li::before {
     text-decoration: none;
     border-radius: 0.5rem;
     font-weight: 500;
-    transition: all 0.2s ease-out;
+    transition: background-color 0.2s ease-out, transform 0.2s ease-out;
     border: 2px solid transparent;
     background: var(--primary-color);
     color: white;
@@ -172,7 +172,7 @@ footer {
 footer a {
     color: var(--gray-400);
     text-decoration: none;
-    transition: all 0.2s ease-out;
+    transition: color 0.2s ease-out;
 }
 footer a:hover {
     color: var(--gray-200);
