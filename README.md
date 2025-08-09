@@ -20,7 +20,7 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 2. Run `npm run dev:chrome` to prepare the Chrome extension
 3. Open Chrome and navigate to `chrome://extensions/`
 4. Enable "Developer mode" in the top right
-5. Click "Load unpacked" and select the `src/chrome` directory
+5. Click "Load unpacked" and select the `dist/chrome-dev` directory
 
 #### For Regular Use (Production)
 
@@ -41,7 +41,7 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 3. Open Firefox and navigate to `about:debugging`
 4. Click "This Firefox" in the left sidebar
 5. Click "Load Temporary Add-on..."
-6. Select the `manifest.json` file from the `src/firefox` directory
+6. Select the `manifest.json` file from the `dist/firefox-dev` directory
 
 #### For Regular Use (Production)
 
@@ -64,31 +64,27 @@ Once installed, the extension will automatically:
 
 The extension is built using Manifest V3 and follows modern browser extension guidelines for both Chrome and Firefox.
 
+Click the extension icon to open the popup and enable/disable features:
+
+- Posts: open post timestamps in a new tab
+- Notifications: open notifications in a new tab
+
 ### Project Structure
 
 ```
 ├── README.md              # This file
 ├── LICENSE                # MIT License
-├── /src/                  # Extension implementation files
-│   ├── /common/           # Shared code used by both browsers
+├── /src/                  # Extension implementation files (source of truth)
+│   ├── /common/           # Shared code for both browsers
 │   │   ├── background.js  # Shared service worker for extension lifecycle
-│   │   └── content.js     # Shared content script for page interaction
-│   ├── /chrome/           # Chrome extension files
-│   │   ├── assets/        # Extension icons
-│   │   │   ├── icon16.png # 16x16 icon
-│   │   │   ├── icon48.png # 48x48 icon
-│   │   │   └── icon128.png # 128x128 icon
-│   │   ├── manifest.json  # Chrome extension manifest (Manifest V3)
-│   │   ├── background.js  # Symbolic link to ../common/background.js
-│   │   └── content.js     # Symbolic link to ../common/content.js
-│   └── /firefox/          # Firefox extension files
-│       ├── assets/        # Extension icons
-│       │   ├── icon16.png # 16x16 icon
-│       │   ├── icon48.png # 48x48 icon
-│       │   └── icon128.png # 128x128 icon
-│       ├── manifest.json  # Firefox extension manifest (Manifest V3)
-│       ├── background.js  # Symbolic link to ../common/background.js
-│       └── content.js     # Symbolic link to ../common/content.js
+│   │   ├── content.js     # Shared content script for page interaction
+│   │   ├── popup.html     # Shared popup UI
+│   │   ├── popup.css      # Shared popup styles
+│   │   └── popup.js       # Shared popup logic (storage-backed)
+│   ├── /chrome/           # Chrome shell (only manifest)
+│   │   └── manifest.json  # Chrome Manifest V3
+│   └── /firefox/          # Firefox shell (only manifest)
+│       └── manifest.json  # Firefox Manifest V3
 ├── /shared-assets/        # Shared icons and images (source)
 │   ├── icon16.png         # 16x16 icon source
 │   ├── icon48.png         # 48x48 icon source
@@ -103,7 +99,11 @@ The extension is built using Manifest V3 and follows modern browser extension gu
 │   └── /firefox/          # Firefox Add-ons screenshots
 ├── /docs/                 # Additional documentation
 │   └── CONTRIBUTING.md    # Contribution guidelines
-├── /dist/                 # Build artifacts (generated, not in repo)
+├── /dist/                 # Dev and build staging (generated, not in repo)
+│   ├── chrome-dev/        # Chrome dev folder to load unpacked
+│   ├── firefox-dev/       # Firefox dev folder for temporary add-on
+│   ├── chrome-build/      # Chrome staging for production zip
+│   ├── firefox-build/     # Firefox staging for production zip
 │   ├── xtab-chrome.zip    # Chrome Web Store distribution
 │   └── xtab-firefox.zip   # Firefox Add-ons distribution
 ├── .gitignore             # Git ignore file
@@ -112,23 +112,23 @@ The extension is built using Manifest V3 and follows modern browser extension gu
 
 ### Building
 
-The project uses npm scripts to build browser-specific distribution files:
+The project uses npm scripts that stage dev builds into `dist/*-dev` and production builds into `dist/*-build`:
 
 ```bash
 # Install dependencies (if needed)
 npm install
 
-# Development setup - prepares both Chrome and Firefox directories
+# Development setup - prepares both Chrome and Firefox dev folders under dist/
 npm run dev
 
-# Browser-specific development setup
-npm run dev:chrome      # Prepare Chrome extension only
-npm run dev:firefox     # Prepare Firefox extension only
+# Browser-specific development setup (dist/chrome-dev and dist/firefox-dev)
+npm run dev:chrome
+npm run dev:firefox
 
-# Production builds - creates separate packages for each browser
-npm run build           # Build both Chrome and Firefox
-npm run build:chrome    # Build Chrome extension (dist/xtab-chrome.zip)
-npm run build:firefox   # Build Firefox extension (dist/xtab-firefox.zip)
+# Production builds - stages into dist/*-build then zips
+npm run build            # Build both Chrome and Firefox
+npm run build:chrome     # Build Chrome (dist/xtab-chrome.zip)
+npm run build:firefox    # Build Firefox (dist/xtab-firefox.zip)
 
 # Clean build artifacts
 npm run clean

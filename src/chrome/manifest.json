@@ -1,11 +1,15 @@
 {
     "manifest_version": 3,
     "name": "Xtab",
-    "version": "1.0.5",
+    "version": "1.1.0",
     "description": "Open X/Twitter post links and notifications in new tabs",
-    "permissions": ["tabs"],
+    "permissions": ["tabs", "storage"],
     "background": {
         "service_worker": "background.js"
+    },
+    "action": {
+        "default_title": "Xtab",
+        "default_popup": "popup.html"
     },
     "content_scripts": [
         {
