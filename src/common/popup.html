@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Xtab</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="icon-and-title">
+          <div class="logo" aria-hidden="true">✳︎</div>
+          <h1>Xtab</h1>
+        </div>
+        <p class="subtitle">Choose features to enable</p>
+      </header>
+
+      <section class="options">
+        <div class="option">
+          <label class="switch">
+            <input type="checkbox" id="posts" />
+            <span class="slider"></span>
+          </label>
+          <div class="label-text">
+            <div class="title">Posts</div>
+            <div class="desc">Open post timestamps in a new tab</div>
+          </div>
+        </div>
+
+        <div class="option">
+          <label class="switch">
+            <input type="checkbox" id="notifications" />
+            <span class="slider"></span>
+          </label>
+          <div class="label-text">
+            <div class="title">Notifications</div>
+            <div class="desc">Open notifications in a new tab</div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span class="hint">More options coming soon</span>
+      </footer>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

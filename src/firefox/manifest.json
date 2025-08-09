@@ -3,10 +3,14 @@
     "name": "Xtab",
     "version": "1.0.5",
     "description": "Open X/Twitter post links and notifications in new tabs",
-    "permissions": ["tabs"],
+    "permissions": ["tabs", "storage"],
     "host_permissions": ["https://*.x.com/*"],
     "background": {
         "scripts": ["background.js"]
+    },
+    "action": {
+        "default_title": "Xtab",
+        "default_popup": "popup.html"
     },
     "content_scripts": [
         {

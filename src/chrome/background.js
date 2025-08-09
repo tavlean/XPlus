@@ -1,1 +1,0 @@
-../../src/common/background.js
