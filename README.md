@@ -66,8 +66,8 @@ The extension is built using Manifest V3 and follows modern browser extension gu
 
 Click the extension icon to open the popup and enable/disable features:
 
-- Posts: open post timestamps in a new tab
-- Notifications: open notifications in a new tab
+-   Posts: open post timestamps in a new tab
+-   Notifications: open notifications in a new tab
 
 ### Project Structure
 

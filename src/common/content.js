@@ -20,12 +20,9 @@ let xtabSettings = {
 // Load settings from storage (with defaults)
 try {
     if (chrome?.storage?.sync) {
-        chrome.storage.sync.get(
-            { posts: true, notifications: true },
-            (items) => {
-                xtabSettings = { posts: !!items.posts, notifications: !!items.notifications };
-            }
-        );
+        chrome.storage.sync.get({ posts: true, notifications: true }, (items) => {
+            xtabSettings = { posts: !!items.posts, notifications: !!items.notifications };
+        });
         chrome.storage.onChanged?.addListener((changes, area) => {
             if (area === "sync") {
                 if (Object.prototype.hasOwnProperty.call(changes, "posts")) {
