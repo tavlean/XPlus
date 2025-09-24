@@ -17,9 +17,6 @@ All notable changes to Xtab will be documented in this file.
 
 ### Changed
 
--   **File Structure**: Simplified file naming for better maintainability
-    -   `redirect-home.js` → `redirect.js`
-    -   `rules-home-redirect.json` → `redirect-rules.json`
 -   **Permissions**: Added new permissions for home redirection feature
     -   Added `declarativeNetRequest` permission
     -   Added `host_permissions` for `https://x.com/*`
