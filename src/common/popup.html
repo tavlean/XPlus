@@ -97,6 +97,30 @@
             </div>
         </div>
 
+        <!-- Countdown Dialog Overlay -->
+        <div class="dialog-overlay" id="countdownDialog" style="display: none">
+            <div class="dialog-content countdown-content">
+                <div class="dialog-header">
+                    <span class="dialog-icon countdown-icon">⏱️</span>
+                    <h3 class="dialog-title">Disabling in...</h3>
+                </div>
+                <div class="dialog-body">
+                    <div class="countdown-display">
+                        <span class="countdown-number" id="countdownNumber">15</span>
+                        <span class="countdown-label">seconds</span>
+                    </div>
+                    <p class="countdown-message">
+                        Take a deep breath and reconsider. This will disable your focus feature.
+                    </p>
+                </div>
+                <div class="dialog-actions">
+                    <button class="dialog-btn dialog-btn-cancel" id="countdownCancel">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script src="popup.js"></script>
     </body>
 </html>

@@ -29,7 +29,7 @@
     -   Include productivity reminder message in confirmation
     -   _Requirements: 1.1, 1.2, 7.3_
 
--   [ ] 5. Add countdown timer functionality
+-   [x] 5. Add countdown timer functionality
 
     -   Implement 3-5 second countdown before disable takes effect
     -   Show countdown with cancel option

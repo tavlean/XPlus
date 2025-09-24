@@ -389,3 +389,68 @@ h1 {
         transform: translateY(0) scale(1);
     }
 }
+
+/* Countdown Dialog Styles */
+.countdown-content {
+    text-align: center;
+}
+
+.countdown-icon {
+    animation: tick 1s infinite;
+}
+
+.countdown-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.countdown-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fbbf24;
+    text-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+    animation: countdownPulse 1s infinite;
+    line-height: 1;
+}
+
+.countdown-label {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.countdown-message {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 12px 0 0 0;
+    line-height: 1.4;
+}
+
+@keyframes tick {
+    0%,
+    50% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes countdownPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

@@ -107,6 +107,58 @@
         });
     }
 
+    // Countdown dialog functions
+    function showCountdownDialog(seconds, onComplete, onCancel) {
+        const dialog = q("#countdownDialog");
+        const countdownNumber = q("#countdownNumber");
+        const cancelBtn = q("#countdownCancel");
+
+        let currentSeconds = seconds;
+        let countdownInterval;
+
+        // Update countdown display
+        function updateCountdown() {
+            countdownNumber.textContent = currentSeconds;
+
+            if (currentSeconds <= 0) {
+                clearInterval(countdownInterval);
+                dialog.style.display = "none";
+                cancelBtn.removeEventListener("click", handleCancel);
+                if (onComplete) onComplete();
+                return;
+            }
+
+            currentSeconds--;
+        }
+
+        // Handle cancel button
+        const handleCancel = () => {
+            clearInterval(countdownInterval);
+            dialog.style.display = "none";
+            cancelBtn.removeEventListener("click", handleCancel);
+            if (onCancel) onCancel();
+        };
+
+        // Show the dialog
+        dialog.style.display = "flex";
+
+        // Set initial countdown number
+        countdownNumber.textContent = currentSeconds;
+
+        // Start countdown
+        countdownInterval = setInterval(updateCountdown, 1000);
+
+        // Add cancel button listener
+        cancelBtn.addEventListener("click", handleCancel);
+
+        // Close dialog when clicking outside (cancel countdown)
+        dialog.addEventListener("click", (e) => {
+            if (e.target === dialog) {
+                handleCancel();
+            }
+        });
+    }
+
     // Helper function to reset daily attempt counter if needed
     function resetDailyAttemptsIfNeeded(callback) {
         getFrictionData((frictionData) => {
@@ -169,12 +221,22 @@
             showConfirmDialog(
                 "The Home Redirect feature helps maintain your focus by redirecting you to your bookmarks instead of distracting social feeds. Are you sure you want to disable this productivity feature?",
                 () => {
-                    // User confirmed - proceed with disable
-                    $homeRedirect.checked = false;
-                    save();
+                    // User confirmed - show countdown before disable
+                    showCountdownDialog(
+                        15, // 15 second countdown
+                        () => {
+                            // Countdown completed - proceed with disable
+                            $homeRedirect.checked = false;
+                            save();
+                        },
+                        () => {
+                            // User cancelled countdown - keep it enabled
+                            $homeRedirect.checked = true;
+                        }
+                    );
                 },
                 () => {
-                    // User cancelled - keep it enabled
+                    // User cancelled confirmation - keep it enabled
                     $homeRedirect.checked = true;
                 }
             );
