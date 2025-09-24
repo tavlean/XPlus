@@ -4,13 +4,16 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 
 ## Features
 
--   Automatically opens X/Twitter post links in new tabs when clicking on post timestamps
--   Automatically opens notifications in new tabs when clicking the notifications link
--   Redirects feed (/home) to bookmarks automatically
--   Toggle features on/off via extension popup
--   Works with dynamically loaded content and SPA navigation
--   Only affects specific links and pages, leaving other functionality unchanged
--   Lightweight and efficient
+-   **Smart Tab Opening**: Automatically opens X/Twitter post links in new tabs when clicking on post timestamps
+-   **Notification Management**: Automatically opens notifications in new tabs when clicking the notifications link
+-   **Focus-Friendly Home Redirect**: Redirects feed (/home) to bookmarks automatically to reduce distractions
+-   **Thoughtful Settings Control**: Enhanced popup with organized sections and smart friction for focus features
+    -   Gentle confirmation before disabling productivity features
+    -   Snooze options (15 min, 1 hour, 4 hours, until tomorrow) instead of permanent disable
+    -   Automatic re-enable when snooze period expires
+-   **Seamless Experience**: Works with dynamically loaded content and SPA navigation
+-   **Selective Impact**: Only affects specific links and pages, leaving other functionality unchanged
+-   **Lightweight and Efficient**: Minimal resource usage with robust error handling
 
 ## Installation
 
@@ -68,11 +71,20 @@ Once installed, the extension will automatically:
 
 The extension is built using Manifest V3 and follows modern browser extension guidelines for both Chrome and Firefox.
 
-Click the extension icon to open the popup and enable/disable features:
+Click the extension icon to open the popup and manage features:
+
+**Utility Features:**
 
 -   Posts: open post timestamps in a new tab
 -   Notifications: open notifications in a new tab
--   Home Redirect: redirect /home to /i/bookmarks
+
+**Focus Features:**
+
+-   Home Redirect: redirect /home to /i/bookmarks with thoughtful disable protection
+    -   Confirmation dialog with productivity reminder
+    -   Snooze options for temporary disable (15 min, 1 hour, 4 hours, until tomorrow)
+    -   Automatic re-enable when snooze expires
+    -   Smart friction reduction for multiple daily attempts
 
 ### Project Structure
 
