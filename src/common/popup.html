@@ -72,6 +72,31 @@
             </section>
         </div>
 
+        <!-- Confirmation Dialog Overlay -->
+        <div class="dialog-overlay" id="confirmDialog" style="display: none">
+            <div class="dialog-content">
+                <div class="dialog-header">
+                    <span class="dialog-icon">⚠️</span>
+                    <h3 class="dialog-title">Disable Home Redirect?</h3>
+                </div>
+                <div class="dialog-body">
+                    <p class="dialog-message">
+                        The Home Redirect feature helps maintain your focus by redirecting you to
+                        your bookmarks instead of distracting social feeds. Are you sure you want to
+                        disable this productivity feature?
+                    </p>
+                </div>
+                <div class="dialog-actions">
+                    <button class="dialog-btn dialog-btn-cancel" id="confirmCancel">
+                        Keep Enabled
+                    </button>
+                    <button class="dialog-btn dialog-btn-confirm" id="confirmProceed">
+                        Yes, Disable
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script src="popup.js"></script>
     </body>
 </html>

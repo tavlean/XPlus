@@ -15,14 +15,14 @@
     -   Implement hover states and smooth transitions
     -   _Requirements: 5.3, 5.5, 6.2, 6.3, 6.4_
 
--   [ ] 3. Extend storage schema for friction data
+-   [x] 3. Extend storage schema for friction data
 
     -   Add new storage fields: snoozeEndTime, disableAttempts, lastAttemptDate
     -   Implement backward compatibility with existing settings
     -   Create helper functions for safe storage operations
     -   _Requirements: 2.1, 3.4, 7.4_
 
--   [ ] 4. Implement basic confirmation dialog system
+-   [x] 4. Implement basic confirmation dialog system
 
     -   Create simple overlay modal for confirmation dialogs
     -   Add confirmation when user attempts to disable home redirect
