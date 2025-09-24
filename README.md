@@ -1,6 +1,6 @@
 # Xtab
 
-A cross-browser extension that automatically opens X/Twitter post links and notifications in new tabs when clicked, plus redirects the home page to bookmarks. Supports both Chrome and Firefox.
+A cross-browser extension that automatically opens X/Twitter post links and notifications in new tabs when clicked, plus redirects the home/feed page to bookmarks. Supports both Chrome and Firefox.
 
 ## Features
 

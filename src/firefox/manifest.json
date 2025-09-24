@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "Xtab",
-    "version": "1.1.0",
-    "description": "Open X/Twitter post links and notifications in new tabs",
+    "version": "1.2.0",
+    "description": "Open X/Twitter post links & notifications in new tab. Redirect home/feed to bookmarks",
     "permissions": ["tabs", "storage", "declarativeNetRequest"],
     "host_permissions": ["https://*.x.com/*", "https://x.com/*"],
     "background": {
