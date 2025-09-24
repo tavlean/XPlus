@@ -38,16 +38,31 @@ try {
     // ignore storage errors; keep defaults
 }
 
+// Safe message sending with fallback
+function safeOpenInNewTab(url) {
+    try {
+        if (chrome?.runtime?.sendMessage) {
+            chrome.runtime.sendMessage({
+                action: "openInNewTab",
+                url: url,
+            });
+        } else {
+            // Fallback: open in new tab using window.open
+            window.open(url, "_blank");
+        }
+    } catch (e) {
+        // Fallback: open in new tab using window.open
+        window.open(url, "_blank");
+    }
+}
+
 // Function to handle post link clicks
 function handlePostLinkClick(event) {
     if (!xtabSettings.posts) return; // feature disabled
     if (isPostLink(event.currentTarget)) {
         event.preventDefault();
         const fullUrl = event.currentTarget.href;
-        chrome.runtime.sendMessage({
-            action: "openInNewTab",
-            url: fullUrl,
-        });
+        safeOpenInNewTab(fullUrl);
     }
 }
 
@@ -57,10 +72,7 @@ function handleNotificationsLinkClick(event) {
     if (isNotificationsLink(event.currentTarget)) {
         event.preventDefault();
         const fullUrl = event.currentTarget.href;
-        chrome.runtime.sendMessage({
-            action: "openInNewTab",
-            url: fullUrl.startsWith("http") ? fullUrl : `https://x.com${fullUrl}`,
-        });
+        safeOpenInNewTab(fullUrl.startsWith("http") ? fullUrl : `https://x.com${fullUrl}`);
     }
 }
 
