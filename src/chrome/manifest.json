@@ -1,9 +1,10 @@
 {
     "manifest_version": 3,
     "name": "Xtab",
-    "version": "1.1.0",
-    "description": "Open X/Twitter post links and notifications in new tabs",
-    "permissions": ["tabs", "storage"],
+    "version": "1.2.0",
+    "description": "Open X/Twitter post links & notifications in new tab. Redirect home/feed to bookmarks",
+    "permissions": ["tabs", "storage", "declarativeNetRequest"],
+    "host_permissions": ["https://x.com/*"],
     "background": {
         "service_worker": "background.js"
     },
@@ -11,10 +12,24 @@
         "default_title": "Xtab",
         "default_popup": "popup.html"
     },
+    "declarative_net_request": {
+        "rule_resources": [
+            {
+                "id": "ruleset_home_redirect",
+                "enabled": false,
+                "path": "redirect-rules.json"
+            }
+        ]
+    },
     "content_scripts": [
         {
             "matches": ["https://*.x.com/*"],
             "js": ["content.js"]
+        },
+        {
+            "matches": ["https://x.com/*"],
+            "js": ["redirect.js"],
+            "run_at": "document_start"
         }
     ],
     "icons": {

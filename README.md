@@ -1,13 +1,15 @@
 # Xtab
 
-A cross-browser extension that automatically opens X/Twitter post links and notifications in new tabs when clicked. Supports both Chrome and Firefox.
+A cross-browser extension that automatically opens X/Twitter post links and notifications in new tabs when clicked, plus redirects the home/feed page to bookmarks. Supports both Chrome and Firefox.
 
 ## Features
 
--   Automatically opens X post links in new tabs when clicking on post timestamps
+-   Automatically opens X/Twitter post links in new tabs when clicking on post timestamps
 -   Automatically opens notifications in new tabs when clicking the notifications link
--   Works with dynamically loaded content
--   Only affects specific links (posts and notifications), leaving other links unchanged
+-   Redirects feed (/home) to bookmarks automatically
+-   Toggle features on/off via extension popup
+-   Works with dynamically loaded content and SPA navigation
+-   Only affects specific links and pages, leaving other functionality unchanged
 -   Lightweight and efficient
 
 ## Installation
@@ -56,9 +58,11 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 
 Once installed, the extension will automatically:
 
--   Detect post links on X (Twitter) and open them in new tabs when clicking on post timestamps
+-   Detect post links on X and open them in new tabs when clicking on post timestamps
 -   Detect the notifications link in the left sidebar and open it in a new tab when clicked
+-   Redirect navigation to /home to /i/bookmarks instead
 -   Work with both static and dynamically loaded content
+-   Handle both network requests and SPA navigation
 
 ## Development
 
@@ -68,6 +72,7 @@ Click the extension icon to open the popup and enable/disable features:
 
 -   Posts: open post timestamps in a new tab
 -   Notifications: open notifications in a new tab
+-   Home Redirect: redirect /home to /i/bookmarks
 
 ### Project Structure
 
@@ -78,6 +83,8 @@ Click the extension icon to open the popup and enable/disable features:
 │   ├── /common/           # Shared code for both browsers
 │   │   ├── background.js  # Shared service worker for extension lifecycle
 │   │   ├── content.js     # Shared content script for page interaction
+│   │   ├── redirect.js    # Content script for home page redirection
+│   │   ├── redirect-rules.json # Declarative Net Request rules for redirection
 │   │   ├── popup.html     # Shared popup UI
 │   │   ├── popup.css      # Shared popup styles
 │   │   └── popup.js       # Shared popup logic (storage-backed)

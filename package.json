@@ -8,11 +8,11 @@
         "clean": "rm -rf dist",
         "prebuild": "npm run clean && mkdir -p dist",
         "dev": "npm run dev:chrome && npm run dev:firefox",
-        "dev:chrome": "rm -rf dist/chrome-dev && mkdir -p dist/chrome-dev/assets && cp -r shared-assets/* dist/chrome-dev/assets/ && cp src/common/background.js src/common/content.js src/chrome/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/chrome-dev/",
-        "dev:firefox": "rm -rf dist/firefox-dev && mkdir -p dist/firefox-dev/assets && cp -r shared-assets/* dist/firefox-dev/assets/ && cp src/common/background.js src/common/content.js src/firefox/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/firefox-dev/",
+        "dev:chrome": "rm -rf dist/chrome-dev && mkdir -p dist/chrome-dev/assets && cp -r shared-assets/* dist/chrome-dev/assets/ && cp src/common/background.js src/common/content.js src/common/redirect.js src/common/redirect-rules.json src/chrome/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/chrome-dev/",
+        "dev:firefox": "rm -rf dist/firefox-dev && mkdir -p dist/firefox-dev/assets && cp -r shared-assets/* dist/firefox-dev/assets/ && cp src/common/background.js src/common/content.js src/common/redirect.js src/common/redirect-rules.json src/firefox/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/firefox-dev/",
         "build": "npm run build:chrome && npm run build:firefox",
-        "build:chrome": "rm -rf dist/chrome-build && mkdir -p dist/chrome-build/assets && cp -r shared-assets/* dist/chrome-build/assets/ && cp src/common/background.js src/common/content.js src/chrome/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/chrome-build/ && cd dist/chrome-build && zip -r ../xtab-chrome.zip *",
-        "build:firefox": "rm -rf dist/firefox-build && mkdir -p dist/firefox-build/assets && cp -r shared-assets/* dist/firefox-build/assets/ && cp src/common/background.js src/common/content.js src/firefox/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/firefox-build/ && cd dist/firefox-build && zip -r ../xtab-firefox.zip *"
+        "build:chrome": "rm -rf dist/chrome-build && mkdir -p dist/chrome-build/assets && cp -r shared-assets/* dist/chrome-build/assets/ && cp src/common/background.js src/common/content.js src/common/redirect.js src/common/redirect-rules.json src/chrome/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/chrome-build/ && cd dist/chrome-build && zip -r ../xtab-chrome.zip *",
+        "build:firefox": "rm -rf dist/firefox-build && mkdir -p dist/firefox-build/assets && cp -r shared-assets/* dist/firefox-build/assets/ && cp src/common/background.js src/common/content.js src/common/redirect.js src/common/redirect-rules.json src/firefox/manifest.json src/common/popup.html src/common/popup.css src/common/popup.js dist/firefox-build/ && cd dist/firefox-build && zip -r ../xtab-firefox.zip *"
     },
     "keywords": [
         "chrome-extension",
