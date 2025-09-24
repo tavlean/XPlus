@@ -71,6 +71,9 @@
                     if (!storageLoaded) {
                         storageLoaded = true;
                         initializeRedirectLogic();
+                    } else {
+                        // Storage was already loaded, just try redirect again
+                        redirectIfHome();
                     }
                 }
             });

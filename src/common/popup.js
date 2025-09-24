@@ -387,13 +387,15 @@
                         }
                         // Update the snooze indicator after clearing snooze
                         updateSnoozeStatusIndicator();
+                        // Save after snooze is fully cleared
+                        save();
                     });
                 } else {
-                    // No snooze to clear, just update indicator
+                    // No snooze to clear, just update indicator and save
                     updateSnoozeStatusIndicator();
+                    save();
                 }
             });
-            save();
             return;
         }
 
