@@ -17,7 +17,7 @@
             {
                 "id": "ruleset_home_redirect",
                 "enabled": false,
-                "path": "rules-home-redirect.json"
+                "path": "redirect-rules.json"
             }
         ]
     },
@@ -28,7 +28,7 @@
         },
         {
             "matches": ["https://x.com/*"],
-            "js": ["redirect-home.js"],
+            "js": ["redirect.js"],
             "run_at": "document_start"
         }
     ],
