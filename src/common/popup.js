@@ -107,6 +107,62 @@
         });
     }
 
+    // Snooze options dialog functions
+    function showSnoozeDialog(onSnoozeSelect, onPermanentDisable, onCancel) {
+        const dialog = q("#snoozeDialog");
+        const snoozeOptions = dialog.querySelectorAll(".snooze-option");
+        const permanentBtn = q("#permanentDisable");
+        const cancelBtn = q("#snoozeCancel");
+
+        // Handle snooze option selection
+        const handleSnoozeSelect = (e) => {
+            const duration = e.currentTarget.getAttribute("data-duration");
+            dialog.style.display = "none";
+            removeEventListeners();
+            if (onSnoozeSelect) onSnoozeSelect(duration);
+        };
+
+        // Handle permanent disable
+        const handlePermanentDisable = () => {
+            dialog.style.display = "none";
+            removeEventListeners();
+            if (onPermanentDisable) onPermanentDisable();
+        };
+
+        // Handle cancel
+        const handleCancel = () => {
+            dialog.style.display = "none";
+            removeEventListeners();
+            if (onCancel) onCancel();
+        };
+
+        // Remove all event listeners
+        function removeEventListeners() {
+            snoozeOptions.forEach((option) => {
+                option.removeEventListener("click", handleSnoozeSelect);
+            });
+            permanentBtn.removeEventListener("click", handlePermanentDisable);
+            cancelBtn.removeEventListener("click", handleCancel);
+        }
+
+        // Show the dialog
+        dialog.style.display = "flex";
+
+        // Add event listeners
+        snoozeOptions.forEach((option) => {
+            option.addEventListener("click", handleSnoozeSelect);
+        });
+        permanentBtn.addEventListener("click", handlePermanentDisable);
+        cancelBtn.addEventListener("click", handleCancel);
+
+        // Close dialog when clicking outside
+        dialog.addEventListener("click", (e) => {
+            if (e.target === dialog) {
+                handleCancel();
+            }
+        });
+    }
+
     // Countdown dialog functions
     function showCountdownDialog(seconds, onComplete, onCancel) {
         const dialog = q("#countdownDialog");
@@ -178,11 +234,61 @@
         });
     }
 
+    // Helper function to calculate snooze end time
+    function calculateSnoozeEndTime(duration) {
+        const now = new Date();
+
+        if (duration === "tomorrow") {
+            // Set to tomorrow at 9 AM
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(9, 0, 0, 0);
+            return tomorrow.getTime();
+        } else {
+            // Duration is in minutes
+            const minutes = parseInt(duration, 10);
+            return now.getTime() + minutes * 60 * 1000;
+        }
+    }
+
+    // Helper function to handle snooze selection
+    function handleSnoozeSelection(duration) {
+        const snoozeEndTime = calculateSnoozeEndTime(duration);
+
+        // Store snooze data and disable the feature
+        updateFrictionData({ snoozeEndTime }, () => {
+            // Disable the feature
+            $homeRedirect.checked = false;
+            save();
+
+            // Set up alarm for snooze expiration
+            if (chrome.alarms) {
+                // Clear any existing snooze alarm first
+                chrome.alarms.clear("snoozeExpired", () => {
+                    // Create new alarm for this snooze period
+                    chrome.alarms.create("snoozeExpired", { when: snoozeEndTime });
+                });
+            }
+        });
+    }
+
     function load() {
         safeStorageGet(null, (items) => {
             $posts.checked = !!items.posts;
             $notifs.checked = !!items.notifications;
             $homeRedirect.checked = !!items.homeRedirect;
+
+            // Check if there's an active snooze that has expired
+            if (items.snoozeEndTime && items.snoozeEndTime <= Date.now()) {
+                // Snooze has expired, clear it and re-enable the feature
+                updateFrictionData({ snoozeEndTime: null }, () => {
+                    if (!items.homeRedirect) {
+                        // Re-enable the feature if it was disabled due to snooze
+                        $homeRedirect.checked = true;
+                        save();
+                    }
+                });
+            }
         });
     }
 
@@ -212,6 +318,22 @@
 
     // Handle home redirect toggle with friction
     function handleHomeRedirectToggle(e) {
+        // If user is enabling the feature, clear any active snooze
+        if (e.target.checked) {
+            getFrictionData((frictionData) => {
+                if (frictionData.snoozeEndTime) {
+                    // Clear the snooze timer and alarm
+                    updateFrictionData({ snoozeEndTime: null }, () => {
+                        if (chrome.alarms) {
+                            chrome.alarms.clear("snoozeExpired");
+                        }
+                    });
+                }
+            });
+            save();
+            return;
+        }
+
         // If user is trying to disable (unchecking), show confirmation
         if (!e.target.checked) {
             // Prevent the toggle from changing immediately
@@ -221,16 +343,29 @@
             showConfirmDialog(
                 "The Home Redirect feature helps maintain your focus by redirecting you to your bookmarks instead of distracting social feeds. Are you sure you want to disable this productivity feature?",
                 () => {
-                    // User confirmed - show countdown before disable
-                    showCountdownDialog(
-                        15, // 15 second countdown
-                        () => {
-                            // Countdown completed - proceed with disable
-                            $homeRedirect.checked = false;
-                            save();
+                    // User confirmed - show snooze options
+                    showSnoozeDialog(
+                        (duration) => {
+                            // User selected snooze option
+                            handleSnoozeSelection(duration);
                         },
                         () => {
-                            // User cancelled countdown - keep it enabled
+                            // User selected permanent disable - show countdown
+                            showCountdownDialog(
+                                5, // 5 second countdown for permanent disable
+                                () => {
+                                    // Countdown completed - proceed with permanent disable
+                                    $homeRedirect.checked = false;
+                                    save();
+                                },
+                                () => {
+                                    // User cancelled countdown - keep it enabled
+                                    $homeRedirect.checked = true;
+                                }
+                            );
+                        },
+                        () => {
+                            // User cancelled snooze dialog - keep it enabled
                             $homeRedirect.checked = true;
                         }
                     );

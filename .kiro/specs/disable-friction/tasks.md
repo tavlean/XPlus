@@ -36,14 +36,14 @@
     -   Apply countdown only after user confirms disable intent
     -   _Requirements: 1.3, 1.4, 7.2_
 
--   [ ] 6. Create snooze options interface
+-   [x] 6. Create snooze options interface
 
     -   Build snooze selection overlay with time options (15min, 1hr, 4hr, tomorrow)
     -   Integrate snooze choice into disable confirmation flow
     -   Add "permanent disable" option alongside snooze choices
     -   _Requirements: 2.1, 2.2_
 
--   [ ] 7. Implement snooze timer management
+-   [x] 7. Implement snooze timer management
 
     -   Use chrome.alarms API for reliable snooze timing
     -   Store snooze end time in chrome.storage
