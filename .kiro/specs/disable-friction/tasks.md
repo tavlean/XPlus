@@ -1,13 +1,13 @@
 # Implementation Plan
 
--   [ ] 1. Enhance popup HTML structure with visual sections
+-   [x] 1. Enhance popup HTML structure with visual sections
 
     -   Add section headers and dividers to separate utility and focus features
     -   Restructure existing options into logical groups
     -   Add placeholder for snooze status indicator
     -   _Requirements: 5.1, 5.2, 6.1_
 
--   [ ] 2. Improve CSS styling for better visual hierarchy
+-   [x] 2. Improve CSS styling for better visual hierarchy
 
     -   Add styles for section headers and dividers
     -   Enhance spacing and typography for better readability

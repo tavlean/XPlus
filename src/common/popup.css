@@ -21,15 +21,18 @@ body {
         "Apple Color Emoji", "Segoe UI Emoji";
 }
 .container {
-    width: 320px;
-    padding: 14px 14px 10px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    width: 340px;
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
         var(--panel);
     border: 1px solid var(--border);
     border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 header {
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .icon-and-title {
     display: flex;
@@ -37,55 +40,177 @@ header {
     gap: 8px;
 }
 h1 {
-    font-size: 16px;
+    font-size: 18px;
     margin: 0;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
+    font-weight: 700;
 }
+
 .subtitle {
-    margin: 4px 0 0;
+    margin: 6px 0 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 13px;
+    opacity: 0.9;
 }
+/* Section Styling */
+.utility-features,
+.focus-features {
+    margin-bottom: 20px;
+}
+
+.utility-features:last-child,
+.focus-features:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.3px;
+}
+
+.section-icon {
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+.section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+/* Focus Features Special Styling */
+.focus-features .section-header {
+    color: #fbbf24;
+}
+
+.focus-features .section-icon {
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3));
+}
+
+.focus-features .section-divider {
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.3), transparent);
+}
+
 .options {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin: 10px 0 6px;
+    margin: 0;
 }
 .option {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
+    gap: 12px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Focus Features Options Special Styling */
+.focus-features .option {
+    border-left: 3px solid rgba(251, 191, 36, 0.3);
+}
+
+.focus-features .option:hover {
+    border-left-color: rgba(251, 191, 36, 0.6);
+    background: rgba(251, 191, 36, 0.05);
 }
 .label-text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
+    flex: 1;
 }
+
 .label-text .title {
     font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
 }
+
 .label-text .desc {
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.4;
+    opacity: 0.9;
 }
 
-/* Toggle Switch */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 42px;
-    height: 24px;
+/* Focus Features Text Styling */
+.focus-features .label-text .title {
+    color: #fbbf24;
 }
+
+.focus-features .label-text .desc {
+    color: rgba(251, 191, 36, 0.7);
+}
+
+/* Toggle Switch Input */
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
+
+/* Snooze Status Styling */
+.snooze-status {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.snooze-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #fbbf24;
+}
+
+.snooze-icon {
+    font-size: 14px;
+    animation: pulse 2s infinite;
+}
+
+.snooze-text {
+    font-weight: 500;
+}
+
+/* Enhanced Switch Styling */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
 .slider {
     position: absolute;
     cursor: pointer;
@@ -94,26 +219,63 @@ h1 {
     right: 0;
     bottom: 0;
     background: #2a2c3a;
-    transition: 0.2s;
+    transition: all 0.3s ease;
     border-radius: 999px;
     border: 1px solid var(--border);
 }
+
+.slider:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 .slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
     left: 3px;
     top: 50%;
     transform: translateY(-50%);
     background: #fff;
     border-radius: 50%;
-    transition: 0.2s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
 .switch input:checked + .slider {
     background: var(--accent);
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
 }
+
 .switch input:checked + .slider:before {
     transform: translate(18px, -50%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Focus Features Switch Special Styling */
+.focus-features .switch input:checked + .slider {
+    background: #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }

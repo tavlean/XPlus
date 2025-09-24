@@ -15,7 +15,13 @@
                 <p class="subtitle">Choose features to enable</p>
             </header>
 
-            <section class="options">
+            <section class="utility-features">
+                <h3 class="section-header">
+                    <span class="section-icon">🔧</span>
+                    Utility Features
+                </h3>
+                <div class="section-divider"></div>
+
                 <div class="option">
                     <label class="switch">
                         <input type="checkbox" id="posts" />
@@ -37,6 +43,14 @@
                         <div class="desc">Open notifications in a new tab</div>
                     </div>
                 </div>
+            </section>
+
+            <section class="focus-features">
+                <h3 class="section-header">
+                    <span class="section-icon">🎯</span>
+                    Focus Features
+                </h3>
+                <div class="section-divider"></div>
 
                 <div class="option">
                     <label class="switch">
@@ -46,6 +60,13 @@
                     <div class="label-text">
                         <div class="title">Home Redirect</div>
                         <div class="desc">Redirect Home to Bookmarks</div>
+                    </div>
+                </div>
+
+                <div class="snooze-status" id="snoozeStatus" style="display: none">
+                    <div class="snooze-indicator">
+                        <span class="snooze-icon">⏰</span>
+                        <span class="snooze-text">Snoozed for <span id="snoozeTime"></span></span>
                     </div>
                 </div>
             </section>
