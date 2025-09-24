@@ -50,7 +50,7 @@
     -   Handle snooze expiration and automatic re-enable
     -   _Requirements: 2.2, 2.3_
 
--   [ ] 8. Add snooze status indicator to popup
+-   [-] 8. Add snooze status indicator to popup
 
     -   Display remaining snooze time in focus features section
     -   Show clear visual indication when feature is snoozed

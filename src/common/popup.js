@@ -251,25 +251,75 @@
         }
     }
 
-    // Helper function to handle snooze selection
+    // Helper function to calculate countdown duration based on snooze time
+    function getCountdownDuration(snoozeDuration) {
+        if (snoozeDuration === "15") return 15; // 15 seconds for 15 minutes
+        if (snoozeDuration === "60") return 60; // 60 seconds for 1 hour
+        if (snoozeDuration === "240") return 240; // 240 seconds (4 minutes) for 4 hours
+        if (snoozeDuration === "tomorrow") return 300; // 300 seconds (5 minutes) for tomorrow
+        return 15; // Default fallback
+    }
+
+    // Helper function to get snooze duration display text
+    function getSnoozeDurationText(duration) {
+        if (duration === "15") return "15 minutes";
+        if (duration === "60") return "1 hour";
+        if (duration === "240") return "4 hours";
+        if (duration === "tomorrow") return "until tomorrow";
+        return duration;
+    }
+
+    // Helper function to handle snooze selection with countdown
     function handleSnoozeSelection(duration) {
-        const snoozeEndTime = calculateSnoozeEndTime(duration);
+        const countdownSeconds = getCountdownDuration(duration);
+        const durationText = getSnoozeDurationText(duration);
 
-        // Store snooze data and disable the feature
-        updateFrictionData({ snoozeEndTime }, () => {
-            // Disable the feature
-            $homeRedirect.checked = false;
-            save();
+        // Update countdown dialog title and message for snooze
+        const countdownDialog = q("#countdownDialog");
+        const dialogTitle = countdownDialog.querySelector(".dialog-title");
+        const countdownMessage = countdownDialog.querySelector(".countdown-message");
 
-            // Set up alarm for snooze expiration
-            if (chrome.alarms) {
-                // Clear any existing snooze alarm first
-                chrome.alarms.clear("snoozeExpired", () => {
-                    // Create new alarm for this snooze period
-                    chrome.alarms.create("snoozeExpired", { when: snoozeEndTime });
+        dialogTitle.textContent = `Snoozing for ${durationText}...`;
+        countdownMessage.textContent = `Take a moment to reconsider. This will disable your focus feature for ${durationText}.`;
+
+        // Show countdown before applying snooze
+        showCountdownDialog(
+            countdownSeconds,
+            () => {
+                // Countdown completed - apply the snooze
+                const snoozeEndTime = calculateSnoozeEndTime(duration);
+
+                // Store snooze data and disable the feature
+                updateFrictionData({ snoozeEndTime }, () => {
+                    // Disable the feature
+                    $homeRedirect.checked = false;
+                    save();
+
+                    // Set up alarm for snooze expiration
+                    if (chrome.alarms) {
+                        // Clear any existing snooze alarm first
+                        chrome.alarms.clear("snoozeExpired", () => {
+                            // Create new alarm for this snooze period
+                            chrome.alarms.create("snoozeExpired", { when: snoozeEndTime });
+                        });
+                    }
                 });
+
+                // Reset dialog title and message for future permanent disable use
+                dialogTitle.textContent = "Disabling in...";
+                countdownMessage.textContent =
+                    "Take a deep breath and reconsider. This will disable your focus feature.";
+            },
+            () => {
+                // User cancelled countdown - keep it enabled
+                $homeRedirect.checked = true;
+
+                // Reset dialog title and message
+                dialogTitle.textContent = "Disabling in...";
+                countdownMessage.textContent =
+                    "Take a deep breath and reconsider. This will disable your focus feature.";
             }
-        });
+        );
     }
 
     function load() {
@@ -351,6 +401,16 @@
                         },
                         () => {
                             // User selected permanent disable - show countdown
+                            const countdownDialog = q("#countdownDialog");
+                            const dialogTitle = countdownDialog.querySelector(".dialog-title");
+                            const countdownMessage =
+                                countdownDialog.querySelector(".countdown-message");
+
+                            // Ensure dialog has correct text for permanent disable
+                            dialogTitle.textContent = "Disabling in...";
+                            countdownMessage.textContent =
+                                "Take a deep breath and reconsider. This will disable your focus feature.";
+
                             showCountdownDialog(
                                 5, // 5 second countdown for permanent disable
                                 () => {

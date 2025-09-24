@@ -294,6 +294,8 @@ h1 {
     justify-content: center;
     z-index: 1000;
     animation: fadeIn 0.2s ease;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .dialog-content {
@@ -302,33 +304,37 @@ h1 {
     border-radius: 16px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
     max-width: 320px;
+    max-height: calc(100vh - 40px);
     width: 90%;
     padding: 20px;
     animation: slideIn 0.3s ease;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .dialog-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
 .dialog-icon {
-    font-size: 24px;
+    font-size: 22px;
     filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.4));
 }
 
 .dialog-title {
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text);
     letter-spacing: 0.2px;
+    line-height: 1.3;
 }
 
 .dialog-body {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .dialog-message {
@@ -457,29 +463,32 @@ h1 {
 
 /* Snooze Dialog Styles */
 .snooze-content {
-    max-width: 360px;
+    max-width: 340px;
+    max-height: calc(100vh - 40px);
 }
 
 .snooze-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 16px 0;
+    gap: 10px;
+    margin: 12px 0;
 }
 
 .snooze-option {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 16px 12px;
+    gap: 3px;
+    padding: 12px 8px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
     color: var(--text);
+    min-height: 60px;
+    justify-content: center;
 }
 
 .snooze-option:hover {
@@ -515,19 +524,19 @@ h1 {
 }
 
 .permanent-option {
-    margin-top: 16px;
-    padding-top: 16px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .permanent-disable-btn {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 14px;
     background: rgba(220, 38, 38, 0.1);
     border: 1px solid rgba(220, 38, 38, 0.3);
     border-radius: 8px;
     color: #fca5a5;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -539,4 +548,89 @@ h1 {
     border-color: rgba(220, 38, 38, 0.5);
     color: #f87171;
     transform: translateY(-1px);
+}
+/* Responsive adjustments for small popup windows */
+@media (max-height: 500px) {
+    .dialog-content {
+        padding: 16px;
+        max-height: calc(100vh - 20px);
+    }
+
+    .dialog-header {
+        margin-bottom: 10px;
+    }
+
+    .dialog-body {
+        margin-bottom: 12px;
+    }
+
+    .dialog-message {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .snooze-options {
+        margin: 10px 0;
+        gap: 8px;
+    }
+
+    .snooze-option {
+        padding: 10px 6px;
+        min-height: 50px;
+    }
+
+    .snooze-time {
+        font-size: 13px;
+    }
+
+    .snooze-desc {
+        font-size: 10px;
+    }
+
+    .permanent-option {
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .permanent-disable-btn {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .dialog-actions {
+        gap: 8px;
+    }
+
+    .dialog-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Extra small popup windows */
+@media (max-height: 400px) {
+    .dialog-overlay {
+        padding: 10px;
+    }
+
+    .dialog-content {
+        padding: 12px;
+        max-height: calc(100vh - 20px);
+    }
+
+    .snooze-options {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin: 8px 0;
+    }
+
+    .snooze-option {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        min-height: auto;
+        text-align: left;
+        gap: 8px;
+    }
 }
