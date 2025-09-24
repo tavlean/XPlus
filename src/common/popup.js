@@ -295,6 +295,9 @@
                     $homeRedirect.checked = false;
                     save();
 
+                    // Update the snooze status indicator
+                    updateSnoozeStatusIndicator();
+
                     // Set up alarm for snooze expiration
                     if (chrome.alarms) {
                         // Clear any existing snooze alarm first
@@ -337,7 +340,12 @@
                         $homeRedirect.checked = true;
                         save();
                     }
+                    // Update the snooze indicator after clearing expired snooze
+                    updateSnoozeStatusIndicator();
                 });
+            } else {
+                // Update the snooze indicator on load
+                updateSnoozeStatusIndicator();
             }
         });
     }
@@ -377,7 +385,12 @@
                         if (chrome.alarms) {
                             chrome.alarms.clear("snoozeExpired");
                         }
+                        // Update the snooze indicator after clearing snooze
+                        updateSnoozeStatusIndicator();
                     });
+                } else {
+                    // No snooze to clear, just update indicator
+                    updateSnoozeStatusIndicator();
                 }
             });
             save();
@@ -441,10 +454,73 @@
         }
     }
 
+    // Snooze status indicator functions
+    function updateSnoozeStatusIndicator() {
+        const snoozeStatus = q("#snoozeStatus");
+        const snoozeTimeEl = q("#snoozeTime");
+
+        getFrictionData((frictionData) => {
+            if (frictionData.snoozeEndTime && frictionData.snoozeEndTime > Date.now()) {
+                // Snooze is active - show the indicator
+                const remainingTime = frictionData.snoozeEndTime - Date.now();
+                const timeText = formatRemainingTime(remainingTime);
+
+                snoozeTimeEl.textContent = timeText;
+                snoozeStatus.style.display = "block";
+            } else {
+                // No active snooze - hide the indicator
+                snoozeStatus.style.display = "none";
+
+                // If there was a snooze time but it's expired, clear it
+                if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
+                    updateFrictionData({ snoozeEndTime: null });
+                }
+            }
+        });
+    }
+
+    // Helper function to format remaining time in a user-friendly way
+    function formatRemainingTime(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const totalHours = Math.floor(totalMinutes / 60);
+        const days = Math.floor(totalHours / 24);
+
+        if (days > 0) {
+            const hours = totalHours % 24;
+            if (hours > 0) {
+                return `${days}d ${hours}h`;
+            }
+            return `${days} day${days > 1 ? "s" : ""}`;
+        } else if (totalHours > 0) {
+            const minutes = totalMinutes % 60;
+            if (minutes > 0) {
+                return `${totalHours}h ${minutes}m`;
+            }
+            return `${totalHours} hour${totalHours > 1 ? "s" : ""}`;
+        } else if (totalMinutes > 0) {
+            return `${totalMinutes} minute${totalMinutes > 1 ? "s" : ""}`;
+        } else {
+            return "less than a minute";
+        }
+    }
+
+    // Set up periodic updates for the snooze indicator
+    function startSnoozeIndicatorUpdates() {
+        // Update immediately
+        updateSnoozeStatusIndicator();
+
+        // Update every 30 seconds to keep the time current
+        setInterval(updateSnoozeStatusIndicator, 30000);
+    }
+
     // Add event listeners
     $posts.addEventListener("change", save);
     $notifs.addEventListener("change", save);
     $homeRedirect.addEventListener("change", handleHomeRedirectToggle);
 
-    document.addEventListener("DOMContentLoaded", load);
+    document.addEventListener("DOMContentLoaded", () => {
+        load();
+        startSnoozeIndicatorUpdates();
+    });
 })();

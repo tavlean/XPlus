@@ -28,7 +28,7 @@ This feature adds intentional friction to the process of disabling the "Home Red
 3. WHEN a snooze period is active THEN the system SHALL display the remaining time in the popup interface
 4. WHEN a snooze period expires THEN the system SHALL show a brief notification that the feature has been re-enabled
 
-### Requirement 3
+<!-- ### Requirement 3
 
 **User Story:** As a user who wants to permanently disable the feature, I want to provide a reason for my decision, so that the extension can learn from user feedback and I can reflect on my choice.
 
@@ -38,7 +38,7 @@ This feature adds intentional friction to the process of disabling the "Home Red
 2. WHEN the feedback form is displayed THEN the system SHALL include options like "Too intrusive", "Prefer manual navigation", "Technical issues", and "Other"
 3. WHEN "Other" is selected THEN the system SHALL provide a text field for custom feedback
 4. WHEN feedback is submitted THEN the system SHALL store it locally for potential future analysis
-5. WHEN feedback is provided THEN the system SHALL proceed with the permanent disable after a 5-second reflection period
+5. WHEN feedback is provided THEN the system SHALL proceed with the permanent disable after a 5-second reflection period -->
 
 ### Requirement 4
 

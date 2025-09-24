@@ -50,20 +50,20 @@
     -   Handle snooze expiration and automatic re-enable
     -   _Requirements: 2.2, 2.3_
 
--   [-] 8. Add snooze status indicator to popup
+-   [x] 8. Add snooze status indicator to popup
 
     -   Display remaining snooze time in focus features section
     -   Show clear visual indication when feature is snoozed
     -   Update indicator in real-time or on popup open
     -   _Requirements: 2.3, 5.4_
 
--   [ ] 9. Implement feedback collection for permanent disable
+<!-- -   [ ] 9. Implement feedback collection for permanent disable
 
     -   Create feedback form with predefined reason options
     -   Add text field for custom feedback when "Other" is selected
     -   Store feedback locally for potential analysis
     -   Add 5-second reflection period after feedback submission
-    -   _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+    -   _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_ -->
 
 -   [ ] 10. Add smart friction reduction logic
 
@@ -80,7 +80,7 @@
     -   Track dismissals and pause reminders after 3 dismissals
     -   _Requirements: 4.1, 4.2, 4.3, 4.4_
 
--   [ ] 12. Enhance background script for snooze management
+-   [x] 12. Enhance background script for snooze management
 
     -   Add alarm listener for snooze expiration
     -   Implement automatic re-enable when snooze expires
