@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 function initializeDNRRules() {
     try {
-        chrome.storage.sync.get({ homeRedirect: true }, (items) => {
+        chrome.storage.sync.get({ homeRedirect: false }, (items) => {
             if (chrome.declarativeNetRequest) {
                 if (items.homeRedirect) {
                     chrome.declarativeNetRequest.updateEnabledRulesets({

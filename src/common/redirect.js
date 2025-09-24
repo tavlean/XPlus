@@ -10,12 +10,12 @@
         }
     }
 
-    let homeRedirectEnabled = true;
+    let homeRedirectEnabled = false;
 
     // Load setting from storage
     try {
         if (chrome?.storage?.sync) {
-            chrome.storage.sync.get({ homeRedirect: true }, (items) => {
+            chrome.storage.sync.get({ homeRedirect: false }, (items) => {
                 homeRedirectEnabled = !!items.homeRedirect;
             });
             chrome.storage.onChanged?.addListener((changes, area) => {

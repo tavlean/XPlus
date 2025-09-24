@@ -3,7 +3,7 @@
     const $posts = q("#posts");
     const $notifs = q("#notifications");
     const $homeRedirect = q("#homeRedirect");
-    const defaults = { posts: true, notifications: true, homeRedirect: true };
+    const defaults = { posts: true, notifications: true, homeRedirect: false };
 
     function load() {
         try {
