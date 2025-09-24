@@ -12,10 +12,15 @@
                 <div class="icon-and-title">
                     <h1>Xtab</h1>
                 </div>
-                <p class="subtitle">Choose features to enable</p>
             </header>
 
-            <section class="options">
+            <section class="utility-features">
+                <h3 class="section-header">
+                    <span class="section-icon">🔧</span>
+                    Utility Features
+                </h3>
+                <div class="section-divider"></div>
+
                 <div class="option">
                     <label class="switch">
                         <input type="checkbox" id="posts" />
@@ -37,6 +42,14 @@
                         <div class="desc">Open notifications in a new tab</div>
                     </div>
                 </div>
+            </section>
+
+            <section class="focus-features">
+                <h3 class="section-header">
+                    <span class="section-icon">🎯</span>
+                    Focus Features
+                </h3>
+                <div class="section-divider"></div>
 
                 <div class="option">
                     <label class="switch">
@@ -48,7 +61,107 @@
                         <div class="desc">Redirect Home to Bookmarks</div>
                     </div>
                 </div>
+
+                <div class="snooze-status" id="snoozeStatus" style="display: none">
+                    <div class="snooze-indicator">
+                        <span class="snooze-icon">⏰</span>
+                        <span class="snooze-text">Snoozed for <span id="snoozeTime"></span></span>
+                    </div>
+                </div>
             </section>
+        </div>
+
+        <!-- Confirmation Dialog Overlay -->
+        <div class="dialog-overlay" id="confirmDialog" style="display: none">
+            <div class="dialog-content">
+                <div class="dialog-header">
+                    <span class="dialog-icon">⚠️</span>
+                    <h3 class="dialog-title">Disable Home Redirect?</h3>
+                </div>
+                <div class="dialog-body">
+                    <p class="dialog-message">
+                        The Home Redirect feature helps maintain your focus by redirecting you to
+                        your bookmarks instead of distracting social feeds. Are you sure you want to
+                        disable this productivity feature?
+                    </p>
+                </div>
+                <div class="dialog-actions">
+                    <button class="dialog-btn dialog-btn-cancel" id="confirmCancel">
+                        Keep Enabled
+                    </button>
+                    <button class="dialog-btn dialog-btn-confirm" id="confirmProceed">
+                        Yes, Disable
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Snooze Options Dialog Overlay -->
+        <div class="dialog-overlay" id="snoozeDialog" style="display: none">
+            <div class="dialog-content snooze-content">
+                <div class="dialog-header">
+                    <span class="dialog-icon">⏰</span>
+                    <h3 class="dialog-title">How long should we disable this?</h3>
+                </div>
+                <div class="dialog-body">
+                    <p class="dialog-message">
+                        Consider taking a short break instead of permanently disabling your focus
+                        feature.
+                    </p>
+                    <div class="snooze-options">
+                        <button class="snooze-option" data-duration="15">
+                            <span class="snooze-time">15 minutes</span>
+                            <span class="snooze-desc">Quick break</span>
+                        </button>
+                        <button class="snooze-option" data-duration="60">
+                            <span class="snooze-time">1 hour</span>
+                            <span class="snooze-desc">Short session</span>
+                        </button>
+                        <button class="snooze-option" data-duration="240">
+                            <span class="snooze-time">4 hours</span>
+                            <span class="snooze-desc">Extended break</span>
+                        </button>
+                        <button class="snooze-option" data-duration="tomorrow">
+                            <span class="snooze-time">Until tomorrow</span>
+                            <span class="snooze-desc">Rest for today</span>
+                        </button>
+                    </div>
+                    <div class="permanent-option">
+                        <button class="permanent-disable-btn" id="permanentDisable">
+                            Disable permanently
+                        </button>
+                    </div>
+                </div>
+                <div class="dialog-actions">
+                    <button class="dialog-btn dialog-btn-cancel" id="snoozeCancel">
+                        Keep Enabled
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown Dialog Overlay -->
+        <div class="dialog-overlay" id="countdownDialog" style="display: none">
+            <div class="dialog-content countdown-content">
+                <div class="dialog-header">
+                    <span class="dialog-icon countdown-icon">⏱️</span>
+                    <h3 class="dialog-title">Disabling in...</h3>
+                </div>
+                <div class="dialog-body">
+                    <div class="countdown-display">
+                        <span class="countdown-number" id="countdownNumber">15</span>
+                        <span class="countdown-label">seconds</span>
+                    </div>
+                    <p class="countdown-message">
+                        Take a deep breath and reconsider. This will disable your focus feature.
+                    </p>
+                </div>
+                <div class="dialog-actions">
+                    <button class="dialog-btn dialog-btn-cancel" id="countdownCancel">
+                        Cancel
+                    </button>
+                </div>
+            </div>
         </div>
 
         <script src="popup.js"></script>

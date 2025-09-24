@@ -21,15 +21,18 @@ body {
         "Apple Color Emoji", "Segoe UI Emoji";
 }
 .container {
-    width: 320px;
-    padding: 14px 14px 10px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    width: 340px;
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
         var(--panel);
     border: 1px solid var(--border);
     border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 header {
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .icon-and-title {
     display: flex;
@@ -37,55 +40,171 @@ header {
     gap: 8px;
 }
 h1 {
-    font-size: 16px;
+    font-size: 18px;
     margin: 0;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
+    font-weight: 700;
 }
-.subtitle {
-    margin: 4px 0 0;
-    color: var(--muted);
-    font-size: 12px;
+
+/* Section Styling */
+.utility-features,
+.focus-features {
+    margin-bottom: 20px;
 }
+
+.utility-features:last-child,
+.focus-features:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.3px;
+}
+
+.section-icon {
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+.section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+/* Focus Features Special Styling */
+.focus-features .section-header {
+    color: #fbbf24;
+}
+
+.focus-features .section-icon {
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3));
+}
+
+.focus-features .section-divider {
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.3), transparent);
+}
+
 .options {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin: 10px 0 6px;
+    margin: 0;
 }
 .option {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
+    gap: 12px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Focus Features Options Special Styling */
+.focus-features .option {
+    border-left: 3px solid rgba(251, 191, 36, 0.3);
+}
+
+.focus-features .option:hover {
+    border-left-color: rgba(251, 191, 36, 0.6);
+    background: rgba(251, 191, 36, 0.05);
 }
 .label-text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
+    flex: 1;
 }
+
 .label-text .title {
     font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
 }
+
 .label-text .desc {
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.4;
+    opacity: 0.9;
 }
 
-/* Toggle Switch */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 42px;
-    height: 24px;
+/* Focus Features Text Styling */
+.focus-features .label-text .title {
+    color: #fbbf24;
 }
+
+.focus-features .label-text .desc {
+    color: rgba(251, 191, 36, 0.7);
+}
+
+/* Toggle Switch Input */
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
+
+/* Snooze Status Styling */
+.snooze-status {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.snooze-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #fbbf24;
+}
+
+.snooze-icon {
+    font-size: 14px;
+    animation: pulse 2s infinite;
+}
+
+.snooze-text {
+    font-weight: 500;
+}
+
+/* Enhanced Switch Styling */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
 .slider {
     position: absolute;
     cursor: pointer;
@@ -94,26 +213,418 @@ h1 {
     right: 0;
     bottom: 0;
     background: #2a2c3a;
-    transition: 0.2s;
+    transition: all 0.3s ease;
     border-radius: 999px;
     border: 1px solid var(--border);
 }
+
+.slider:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 .slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
     left: 3px;
     top: 50%;
     transform: translateY(-50%);
     background: #fff;
     border-radius: 50%;
-    transition: 0.2s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
 .switch input:checked + .slider {
     background: var(--accent);
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
 }
+
 .switch input:checked + .slider:before {
     transform: translate(18px, -50%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Focus Features Switch Special Styling */
+.focus-features .switch input:checked + .slider {
+    background: #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Confirmation Dialog Styles */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.dialog-content {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    max-width: 320px;
+    max-height: calc(100vh - 40px);
+    width: 90%;
+    padding: 20px;
+    animation: slideIn 0.3s ease;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.dialog-icon {
+    font-size: 22px;
+    filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.4));
+}
+
+.dialog-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.2px;
+    line-height: 1.3;
+}
+
+.dialog-body {
+    margin-bottom: 16px;
+}
+
+.dialog-message {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.dialog-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+}
+
+.dialog-btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.dialog-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dialog-btn-confirm {
+    background: #dc2626;
+    color: white;
+    border: 1px solid #dc2626;
+}
+
+.dialog-btn-confirm:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Countdown Dialog Styles */
+.countdown-content {
+    text-align: center;
+}
+
+.countdown-icon {
+    animation: tick 1s infinite;
+}
+
+.countdown-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.countdown-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fbbf24;
+    text-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+    animation: countdownPulse 1s infinite;
+    line-height: 1;
+}
+
+.countdown-label {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.countdown-message {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 12px 0 0 0;
+    line-height: 1.4;
+}
+
+@keyframes tick {
+    0%,
+    50% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes countdownPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Snooze Dialog Styles */
+.snooze-content {
+    max-width: 340px;
+    max-height: calc(100vh - 40px);
+}
+
+.snooze-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.snooze-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 12px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    color: var(--text);
+    min-height: 60px;
+    justify-content: center;
+}
+
+.snooze-option:hover {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+}
+
+.snooze-option:active {
+    transform: translateY(0);
+}
+
+.snooze-time {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.snooze-desc {
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.8;
+}
+
+.snooze-option:hover .snooze-time {
+    color: #fbbf24;
+}
+
+.snooze-option:hover .snooze-desc {
+    color: rgba(251, 191, 36, 0.7);
+}
+
+.permanent-option {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.permanent-disable-btn {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    color: #fca5a5;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.permanent-disable-btn:hover {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.5);
+    color: #f87171;
+    transform: translateY(-1px);
+}
+/* Responsive adjustments for small popup windows */
+@media (max-height: 500px) {
+    .dialog-content {
+        padding: 16px;
+        max-height: calc(100vh - 20px);
+    }
+
+    .dialog-header {
+        margin-bottom: 10px;
+    }
+
+    .dialog-body {
+        margin-bottom: 12px;
+    }
+
+    .dialog-message {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .snooze-options {
+        margin: 10px 0;
+        gap: 8px;
+    }
+
+    .snooze-option {
+        padding: 10px 6px;
+        min-height: 50px;
+    }
+
+    .snooze-time {
+        font-size: 13px;
+    }
+
+    .snooze-desc {
+        font-size: 10px;
+    }
+
+    .permanent-option {
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .permanent-disable-btn {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .dialog-actions {
+        gap: 8px;
+    }
+
+    .dialog-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Extra small popup windows */
+@media (max-height: 400px) {
+    .dialog-overlay {
+        padding: 10px;
+    }
+
+    .dialog-content {
+        padding: 12px;
+        max-height: calc(100vh - 20px);
+    }
+
+    .snooze-options {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin: 8px 0;
+    }
+
+    .snooze-option {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        min-height: auto;
+        text-align: left;
+        gap: 8px;
+    }
 }
