@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design adds simple friction to disabling the home redirect feature while keeping the extension lightweight and maintainable. We'll enhance the existing popup interface with visual sections and add straightforward confirmation flows using minimal code changes.
+This design adds simple friction to disabling focus redirect features (Home and Explore redirects) while keeping the extension lightweight and maintainable. We'll enhance the existing popup interface with improved visual design, better interaction patterns, and add a new Explore Redirect feature that uses the same friction mechanisms as Home Redirect.
 
 ## Architecture
 
@@ -24,39 +24,60 @@ No new components or complex abstractions - just enhance what's already there.
 
 ### 1. Enhanced Popup HTML Structure
 
-Simple section dividers in the existing HTML:
+Reorganized sections with Focus Features on top and improved interaction design:
 
 ```html
+<section class="focus-features">
+    <h3>🎯 Focus Features</h3>
+    <!-- Home Redirect option with snooze indicator -->
+    <!-- Explore Redirect option with snooze indicator -->
+</section>
+
 <section class="utility-features">
     <h3>🔧 Utility Features</h3>
     <!-- Posts and Notifications options -->
 </section>
-
-<section class="focus-features">
-    <h3>🎯 Focus Features</h3>
-    <!-- Home Redirect option with snooze indicator -->
-</section>
 ```
+
+**Key UI Improvements:**
+
+-   Focus Features section moved to top for priority
+-   Entire option elements are clickable (not just toggle switches)
+-   Hover states don't cause element movement
+-   Subtle color scheme for focus features (replacing bright yellow)
+-   Green "Keep Enabled" button in snooze dialogs
 
 ### 2. Enhanced popup.js Logic
 
-Add friction functions directly to the existing popup.js:
+Extend existing friction functions to support both redirect features:
 
 ```javascript
-// Simple friction functions added to existing file
-function showConfirmDialog(message, onConfirm, onCancel) {
-    /* ... */
+// Enhanced friction functions for both Home and Explore redirects
+function showConfirmDialog(featureType, message, onConfirm, onCancel) {
+    /* Handle both 'home' and 'explore' redirect types */
 }
-function showSnoozeOptions(onSelect) {
-    /* ... */
+function showSnoozeOptions(featureType, onSelect) {
+    /* Support independent snooze timers for each feature */
 }
-function startCountdown(seconds, onComplete) {
-    /* ... */
+function handleRedirectToggle(featureType, toggleElement) {
+    /* Unified friction handling for both redirect features */
 }
-function checkSnoozeStatus() {
-    /* ... */
+function updateSnoozeStatusIndicator(featureType) {
+    /* Show snooze status for each feature independently */
+}
+
+// New click handler for entire option elements
+function makeOptionClickable(optionElement, toggleElement) {
+    /* Make entire setting element clickable */
 }
 ```
+
+**Explore Redirect Implementation:**
+
+-   Reuse existing friction mechanisms for consistency
+-   Independent snooze timers for Home and Explore redirects
+-   Same confirmation dialogs and countdown behavior
+-   Unified redirect rule management
 
 ### 3. Simple Modal System
 
@@ -70,20 +91,49 @@ Use browser's native `confirm()` and custom overlays for better UX:
 
 ### Enhanced Storage Schema
 
-Simple additions to existing Chrome storage:
+Extended storage to support both redirect features:
 
 ```javascript
 // Enhanced storage (backward compatible)
 {
-  // Existing settings (unchanged)
+  // Existing settings
   posts: boolean,
   notifications: boolean,
   homeRedirect: boolean,
 
-  // Simple additions for friction
-  snoozeEndTime: number,     // When snooze expires (timestamp)
-  disableAttempts: number,   // Daily counter for reducing friction
-  lastAttemptDate: string    // Date of last attempt (YYYY-MM-DD)
+  // New explore redirect setting
+  exploreRedirect: boolean,
+
+  // Enhanced friction data for both features
+  homeSnoozeEndTime: number,     // When home snooze expires
+  exploreSnoozeEndTime: number,  // When explore snooze expires
+  homeDisableAttempts: number,   // Daily counter for home redirect
+  exploreDisableAttempts: number, // Daily counter for explore redirect
+  lastAttemptDate: string        // Date of last attempt (YYYY-MM-DD)
+}
+```
+
+### Redirect Rules Schema
+
+Enhanced declarativeNetRequest rules to support both redirects:
+
+```javascript
+// Rule structure for both Home and Explore redirects
+{
+  "ruleset_home_redirect": [
+    {
+      "id": 1,
+      "condition": { "urlFilter": "*/home*" },
+      "action": { "type": "redirect", "redirect": { "url": "*/bookmarks" } }
+    }
+  ],
+  "ruleset_explore_redirect": [
+    {
+      "id": 2,
+      "condition": { "urlFilter": "*/explore*" },
+      "action": { "type": "redirect", "redirect": { "url": "*/bookmarks" } }
+    }
+  ]
 }
 ```
 
@@ -110,39 +160,48 @@ function safeStorageGet(keys, callback) {
 
 ### Manual Testing Focus
 
--   Test friction flow: toggle off → confirm → snooze options → countdown
--   Test snooze expiration and re-enable
--   Test multiple attempts reducing friction
--   Test visual sections and improved styling
--   Test across different screen sizes
+-   Test friction flow for both Home and Explore redirects
+-   Test independent snooze timers for each feature
+-   Test UI improvements: clickable elements, stable hover states, subtle colors
+-   Test redirect functionality for /explore paths and sub-paths
+-   Test visual sections with Focus Features on top
+-   Test green "Keep Enabled" button styling
 
 ### Key Test Cases
 
-1. First disable attempt shows full friction
-2. Multiple attempts same day reduce friction after 3rd try
-3. Snooze works correctly and auto re-enables
-4. Visual sections clearly separate utility vs focus features
-5. All existing functionality remains unchanged
+1. Home Redirect friction works as before (backward compatibility)
+2. Explore Redirect friction works identically to Home Redirect
+3. Independent snooze timers for each feature
+4. Entire option elements are clickable (not just toggles)
+5. Hover states don't cause visual movement
+6. Focus Features use subtle colors instead of bright yellow
+7. "Keep Enabled" button appears green in snooze dialogs
+8. Focus Features section appears above Utility Features
+9. /explore and /explore/\* paths redirect to bookmarks when enabled
 
 ## Implementation Approach
 
-### Phase 1: Visual Improvements
+### Phase 1: UI Improvements
 
--   Add section headers and dividers to popup.html
--   Enhance CSS with better spacing and visual hierarchy
--   Add icons and improved styling for focus vs utility features
+-   Reorganize sections: Focus Features on top, Utility Features on bottom
+-   Update CSS for subtle colors instead of bright yellow
+-   Fix hover states to prevent element movement
+-   Make entire option elements clickable
+-   Style "Keep Enabled" button with green color
 
-### Phase 2: Basic Friction
+### Phase 2: Explore Redirect Feature
 
--   Add confirmation dialog when toggling home redirect off
--   Implement simple 3-second countdown before disable
--   Add snooze options (15min, 1hr, 4hr, tomorrow)
+-   Add Explore Redirect toggle to Focus Features section
+-   Implement redirect rules for /explore paths
+-   Extend friction mechanisms to support both redirect features
+-   Add independent snooze status indicators
 
-### Phase 3: Smart Behavior
+### Phase 3: Enhanced Friction System
 
--   Track daily attempts and reduce friction after 3rd attempt
--   Implement snooze timer using chrome.alarms API
--   Add subtle re-engagement reminders
+-   Implement separate snooze timers for Home and Explore redirects
+-   Update storage schema to support both features
+-   Ensure backward compatibility with existing data
+-   Test all friction flows work independently
 
 ### Technical Decisions
 
@@ -162,7 +221,17 @@ function safeStorageGet(keys, callback) {
 
 **Visual Design:**
 
--   Enhance existing CSS rather than complete redesign
--   Use subtle visual cues (icons, colors) to distinguish sections
--   Maintain current dark theme and styling patterns
--   Focus on improved information hierarchy
+-   Replace bright yellow with subtle amber/gold colors for focus features
+-   Implement stable hover states that don't cause layout shifts
+-   Make entire option elements interactive (not just toggle switches)
+-   Use green color for positive actions ("Keep Enabled" button)
+-   Maintain current dark theme while improving visual hierarchy
+-   Prioritize Focus Features by placing them at the top
+
+**Explore Redirect Implementation:**
+
+-   Reuse existing friction system architecture for consistency
+-   Support independent operation of Home and Explore redirects
+-   Use same dialog components with feature-specific messaging
+-   Implement separate snooze timers and status indicators
+-   Extend declarativeNetRequest rules for /explore path matching
