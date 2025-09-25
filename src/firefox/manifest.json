@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "XPlus - Disable Feed & More on 𝕏",
-    "version": "1.3.1",
+    "version": "1.4.0",
     "description": "Open X/Twitter post links & notifications in new tab. Redirect home/feed to bookmarks",
     "permissions": ["tabs", "storage", "declarativeNetRequest", "alarms", "notifications"],
     "host_permissions": ["https://*.x.com/*", "https://x.com/*"],

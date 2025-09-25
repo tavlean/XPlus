@@ -2,6 +2,92 @@
 
 All notable changes to XPlus will be documented in this file.
 
+## [1.4.0] - 2025-01-26
+
+### Added - Detailed Changelog
+
+-   **Explore Redirect Feature**: Added comprehensive redirection for X.com/explore pages to maintain focus
+    -   Redirects all /explore paths including sub-paths (/explore/tabs/trending, /explore/tabs/sports, etc.) to bookmarks
+    -   Independent toggle control in Focus Features section with same friction mechanisms as Home Redirect
+    -   Separate snooze timer system allowing independent management of Home and Explore redirects
+    -   Declarative Net Request rules for reliable network-level redirection
+    -   Extended storage schema with exploreRedirect, exploreSnoozeEndTime, and exploreDisableAttempts fields
+-   **Enhanced Friction System**: Unified and improved disable confirmation flow
+    -   Dynamic dialog titles that change based on feature being disabled ("Disable Home Redirect?" vs "Disable Explore Redirect?")
+    -   Feature-specific confirmation messages explaining the benefits of each redirect type
+    -   Unified friction handling supporting both Home and Explore redirect features independently
+    -   Enhanced snooze options dialog with improved visual consistency
+-   **Improved Visual Design**: Comprehensive UI/UX enhancements for better user experience
+    -   Added extension icon to popup header for better brand recognition
+    -   Reorganized popup with Focus Features prominently displayed at top, Utility Features at bottom
+    -   Enhanced button styling with consistent color scheme across all dialogs
+    -   Centered button alignment in confirmation and countdown dialogs
+    -   Full-width "Keep Enabled" button in snooze dialog matching "Disable permanently" button
+    -   Subtle amber/gold color scheme for focus features replacing bright yellow
+    -   Improved hover states without element movement or layout shifts
+-   **Enhanced Interaction Design**: More intuitive and polished user interactions
+    -   Entire option elements now clickable, not just toggle switches
+    -   Stable hover effects with smooth transitions and no position changes
+    -   Consistent button styling using blue accent color for "Keep Enabled" buttons
+    -   Refined red button styling matching permanent disable button appearance
+    -   Improved visual hierarchy and spacing throughout the interface
+
+### Changed
+
+-   **Button Color Scheme**: Updated dialog buttons for better visual consistency
+    -   "Keep Enabled" buttons now use blue accent color matching toggle switches
+    -   Red confirmation buttons now use subtle semi-transparent styling instead of solid red
+    -   Consistent styling between confirmation dialogs and snooze options
+-   **Popup Layout**: Reorganized interface for improved user experience
+    -   Focus Features section moved to top with prominent positioning
+    -   Utility Features section moved to bottom as secondary options
+    -   Added visual section separators and improved typography
+    -   Enhanced spacing and alignment throughout the interface
+-   **Friction Mechanisms**: Extended to support multiple redirect features
+    -   Unified confirmation dialog system supporting both Home and Explore redirects
+    -   Independent snooze timer management for each feature type
+    -   Feature-specific messaging and handling while maintaining consistent UX
+    -   Backward compatibility maintained for existing Home Redirect functionality
+
+### Technical Implementation
+
+-   Extended declarativeNetRequest rules with new ruleset_explore_redirect
+-   Enhanced popup.js with unified handleRedirectToggle function supporting feature types
+-   Improved storage management with feature-specific friction data handling
+-   Enhanced dialog system with dynamic content based on feature type
+-   Maintained lightweight architecture while adding comprehensive new functionality
+-   Added proper alarm management for multiple concurrent snooze timers
+
+---
+
+## [1.4.0] - 2025-01-26 - Brief User-Focused Changelog
+
+### New Features
+
+-   **Explore Redirect**: Block distracting /explore pages (trending, sports, etc.) by redirecting to bookmarks
+    -   Same smart snooze options as Home Redirect (15 min, 1 hour, 4 hours, until tomorrow)
+    -   Independent control - enable/disable separately from Home Redirect
+    -   Works on all explore sub-pages to keep you focused
+-   **Better Interface Design**: Cleaner, more intuitive popup experience
+    -   Extension icon now appears in popup header
+    -   Focus Features moved to top, Utility Features to bottom for better organization
+    -   Click anywhere on a setting row to toggle it (not just the switch)
+    -   Improved button colors and styling for better consistency
+
+### Improvements
+
+-   **Enhanced Dialogs**: More polished confirmation and snooze dialogs
+    -   Dialog titles now show which specific feature you're disabling
+    -   Centered buttons for better visual balance
+    -   Consistent button styling across all dialogs
+    -   Smoother hover effects without unwanted movement
+-   **Visual Polish**: Refined color scheme and spacing throughout
+    -   Subtle amber colors for focus features instead of bright yellow
+    -   Better visual hierarchy and improved readability
+    -   More consistent and professional appearance
+
+---
+
 ## [1.3.0] - 2025-01-25
 
 ### Added - Detailed Changelog
