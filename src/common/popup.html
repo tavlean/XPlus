@@ -10,9 +10,56 @@
         <div class="container">
             <header>
                 <div class="icon-and-title">
+                    <img src="assets/icon16.png" alt="XPlus" class="header-icon" />
                     <h1>XPlus</h1>
                 </div>
             </header>
+
+            <section class="focus-features">
+                <h3 class="section-header">
+                    <span class="section-icon">🎯</span>
+                    Focus Features
+                </h3>
+                <div class="section-divider"></div>
+
+                <div class="option">
+                    <label class="switch">
+                        <input type="checkbox" id="homeRedirect" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Home Redirect</div>
+                        <div class="desc">Redirect Home to Bookmarks</div>
+                    </div>
+                </div>
+
+                <div class="snooze-status" id="snoozeStatus" style="display: none">
+                    <div class="snooze-indicator">
+                        <span class="snooze-icon">⏰</span>
+                        <span class="snooze-text">Snoozed for <span id="snoozeTime"></span></span>
+                    </div>
+                </div>
+
+                <div class="option">
+                    <label class="switch">
+                        <input type="checkbox" id="exploreRedirect" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Explore Redirect</div>
+                        <div class="desc">Redirect Explore to Bookmarks</div>
+                    </div>
+                </div>
+
+                <div class="snooze-status" id="exploreSnoozeStatus" style="display: none">
+                    <div class="snooze-indicator">
+                        <span class="snooze-icon">⏰</span>
+                        <span class="snooze-text"
+                            >Snoozed for <span id="exploreSnoozeTime"></span
+                        ></span>
+                    </div>
+                </div>
+            </section>
 
             <section class="utility-features">
                 <h3 class="section-header">
@@ -43,32 +90,6 @@
                     </div>
                 </div>
             </section>
-
-            <section class="focus-features">
-                <h3 class="section-header">
-                    <span class="section-icon">🎯</span>
-                    Focus Features
-                </h3>
-                <div class="section-divider"></div>
-
-                <div class="option">
-                    <label class="switch">
-                        <input type="checkbox" id="homeRedirect" />
-                        <span class="slider"></span>
-                    </label>
-                    <div class="label-text">
-                        <div class="title">Home Redirect</div>
-                        <div class="desc">Redirect Home to Bookmarks</div>
-                    </div>
-                </div>
-
-                <div class="snooze-status" id="snoozeStatus" style="display: none">
-                    <div class="snooze-indicator">
-                        <span class="snooze-icon">⏰</span>
-                        <span class="snooze-text">Snoozed for <span id="snoozeTime"></span></span>
-                    </div>
-                </div>
-            </section>
         </div>
 
         <!-- Confirmation Dialog Overlay -->
@@ -76,7 +97,7 @@
             <div class="dialog-content">
                 <div class="dialog-header">
                     <span class="dialog-icon">⚠️</span>
-                    <h3 class="dialog-title">Disable Home Redirect?</h3>
+                    <h3 class="dialog-title" id="dialogTitle">Disable Home Redirect?</h3>
                 </div>
                 <div class="dialog-body">
                     <p class="dialog-message">

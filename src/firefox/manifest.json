@@ -18,6 +18,11 @@
                 "id": "ruleset_home_redirect",
                 "enabled": false,
                 "path": "redirect-rules.json"
+            },
+            {
+                "id": "ruleset_explore_redirect",
+                "enabled": false,
+                "path": "explore-redirect-rules.json"
             }
         ]
     },

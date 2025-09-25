@@ -10,7 +10,17 @@
         }
     }
 
+    function isExplore(url) {
+        try {
+            const u = new URL(url, location.origin);
+            return u.origin === "https://x.com" && u.pathname.startsWith("/explore");
+        } catch {
+            return false;
+        }
+    }
+
     let homeRedirectEnabled = false;
+    let exploreRedirectEnabled = false;
     let storageLoaded = false;
 
     function redirectIfHome() {
@@ -21,13 +31,25 @@
         return false;
     }
 
+    function redirectIfExplore() {
+        if (exploreRedirectEnabled && isExplore(location.href)) {
+            location.replace("https://x.com/i/bookmarks");
+            return true;
+        }
+        return false;
+    }
+
+    function redirectIfNeeded() {
+        return redirectIfHome() || redirectIfExplore();
+    }
+
     function initializeRedirectLogic() {
-        if (!redirectIfHome()) {
+        if (!redirectIfNeeded()) {
             let lastHref = location.href;
             const onUrlChange = () => {
                 if (location.href !== lastHref) {
                     lastHref = location.href;
-                    redirectIfHome();
+                    redirectIfNeeded();
                 }
             };
 
@@ -53,27 +75,38 @@
         }
     }
 
-    // Load setting from storage and initialize redirect logic
+    // Load settings from storage and initialize redirect logic
     try {
         if (chrome?.storage?.sync) {
-            chrome.storage.sync.get({ homeRedirect: false }, (items) => {
+            chrome.storage.sync.get({ homeRedirect: false, exploreRedirect: false }, (items) => {
                 homeRedirectEnabled = !!items.homeRedirect;
+                exploreRedirectEnabled = !!items.exploreRedirect;
                 storageLoaded = true;
                 initializeRedirectLogic();
             });
             chrome.storage.onChanged?.addListener((changes, area) => {
-                if (
-                    area === "sync" &&
-                    Object.prototype.hasOwnProperty.call(changes, "homeRedirect")
-                ) {
-                    homeRedirectEnabled = !!changes.homeRedirect.newValue;
-                    // If storage wasn't loaded yet, initialize now
-                    if (!storageLoaded) {
-                        storageLoaded = true;
-                        initializeRedirectLogic();
-                    } else {
-                        // Storage was already loaded, just try redirect again
-                        redirectIfHome();
+                if (area === "sync") {
+                    let shouldReinitialize = false;
+
+                    if (Object.prototype.hasOwnProperty.call(changes, "homeRedirect")) {
+                        homeRedirectEnabled = !!changes.homeRedirect.newValue;
+                        shouldReinitialize = true;
+                    }
+
+                    if (Object.prototype.hasOwnProperty.call(changes, "exploreRedirect")) {
+                        exploreRedirectEnabled = !!changes.exploreRedirect.newValue;
+                        shouldReinitialize = true;
+                    }
+
+                    if (shouldReinitialize) {
+                        // If storage wasn't loaded yet, initialize now
+                        if (!storageLoaded) {
+                            storageLoaded = true;
+                            initializeRedirectLogic();
+                        } else {
+                            // Storage was already loaded, just try redirect again
+                            redirectIfNeeded();
+                        }
                     }
                 }
             });

@@ -1,110 +1,136 @@
 # Implementation Plan
 
--   [x] 1. Enhance popup HTML structure with visual sections
+> **Post-Task Command**: After completing each task, run `npm run dev` to build and test the extension.
 
-    -   Add section headers and dividers to separate utility and focus features
-    -   Restructure existing options into logical groups
-    -   Add placeholder for snooze status indicator
-    -   _Requirements: 5.1, 5.2, 6.1_
+-   [x] 1. Reorganize popup HTML structure for improved priority
 
--   [x] 2. Improve CSS styling for better visual hierarchy
+    -   Move Focus Features section to top of popup interface
+    -   Move Utility Features section to bottom
+    -   Update section order in HTML structure
+    -   _Requirements: 5.1_
+    -   **After completion**: Run `npm run dev`
 
-    -   Add styles for section headers and dividers
-    -   Enhance spacing and typography for better readability
-    -   Add visual cues (colors, icons) to distinguish feature types
-    -   Implement hover states and smooth transitions
-    -   _Requirements: 5.3, 5.5, 6.2, 6.3, 6.4_
+-   [x] 2. Update CSS for subtle focus feature styling
 
--   [x] 3. Extend storage schema for friction data
+    -   Replace bright yellow colors with subtle amber/gold tones
+    -   Reduce visual intensity while maintaining distinction
+    -   Update focus feature text colors and borders
+    -   Maintain readability and accessibility
+    -   _Requirements: 9.3_
+    -   **After completion**: Run `npm run dev`
 
-    -   Add new storage fields: snoozeEndTime, disableAttempts, lastAttemptDate
-    -   Implement backward compatibility with existing settings
-    -   Create helper functions for safe storage operations
-    -   _Requirements: 2.1, 3.4, 7.4_
+-   [x] 3. Fix hover states to prevent element movement
 
--   [x] 4. Implement basic confirmation dialog system
+    -   Remove transform: translateY from hover states
+    -   Implement stable hover effects without layout shifts
+    -   Ensure smooth transitions without position changes
+    -   Test hover behavior across all option elements
+    -   _Requirements: 9.1, 9.5_
+    -   **After completion**: Run `npm run dev`
 
-    -   Create simple overlay modal for confirmation dialogs
-    -   Add confirmation when user attempts to disable home redirect
-    -   Include productivity reminder message in confirmation
-    -   _Requirements: 1.1, 1.2, 7.3_
+-   [x] 4. Make entire option elements clickable
 
--   [x] 5. Add countdown timer functionality
+    -   Add click event listeners to entire .option elements
+    -   Ensure clicks anywhere on option toggle the setting
+    -   Maintain existing toggle switch functionality
+    -   Prevent event bubbling conflicts
+    -   _Requirements: 9.2_
+    -   **After completion**: Run `npm run dev`
 
-    -   Implement 3-5 second countdown before disable takes effect
-    -   Show countdown with cancel option
-    -   Apply countdown only after user confirms disable intent
-    -   _Requirements: 1.3, 1.4, 7.2_
+-   [x] 5. Style "Keep Enabled" button with green color
 
--   [x] 6. Create snooze options interface
+    -   Update CSS for .dialog-btn-cancel in snooze dialog
+    -   Use green background and appropriate hover states
+    -   Ensure good contrast and accessibility
+    -   Make button visually encourage positive action
+    -   _Requirements: 9.4_
+    -   **After completion**: Run `npm run dev`
 
-    -   Build snooze selection overlay with time options (15min, 1hr, 4hr, tomorrow)
-    -   Integrate snooze choice into disable confirmation flow
-    -   Add "permanent disable" option alongside snooze choices
-    -   _Requirements: 2.1, 2.2_
+-   [x] 6. Add Explore Redirect toggle to Focus Features section
 
--   [x] 7. Implement snooze timer management
+    -   Create new HTML option element for Explore Redirect
+    -   Add toggle switch and descriptive text
+    -   Position it in Focus Features section alongside Home Redirect
+    -   Include snooze status indicator for Explore Redirect
+    -   _Requirements: 8.5_
+    -   **After completion**: Run `npm run dev`
 
-    -   Use chrome.alarms API for reliable snooze timing
-    -   Store snooze end time in chrome.storage
-    -   Handle snooze expiration and automatic re-enable
-    -   _Requirements: 2.2, 2.3_
+-   [x] 7. Extend storage schema for Explore Redirect
 
--   [x] 8. Add snooze status indicator to popup
+    -   Add exploreRedirect boolean setting to storage
+    -   Add exploreSnoozeEndTime for independent snooze timing
+    -   Add exploreDisableAttempts for separate attempt tracking
+    -   Ensure backward compatibility with existing data
+    -   _Requirements: 8.4_
+    -   **After completion**: Run `npm run dev`
 
-    -   Display remaining snooze time in focus features section
-    -   Show clear visual indication when feature is snoozed
-    -   Update indicator in real-time or on popup open
-    -   _Requirements: 2.3, 5.4_
+-   [x] 8. Implement Explore Redirect declarativeNetRequest rules
 
-<!-- -   [ ] 9. Implement feedback collection for permanent disable
+    -   Create ruleset_explore_redirect with /explore path matching
+    -   Handle /explore and all sub-paths (/explore/tabs/\*, etc.)
+    -   Redirect to bookmarks page when Explore Redirect is enabled
+    -   Update rule management in popup.js save function
+    -   _Requirements: 8.1_
+    -   **After completion**: Run `npm run dev`
 
-    -   Create feedback form with predefined reason options
-    -   Add text field for custom feedback when "Other" is selected
-    -   Store feedback locally for potential analysis
-    -   Add 5-second reflection period after feedback submission
-    -   _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_ -->
+-   [x] 9. Extend friction system to support both redirect features
 
--   [ ] 10. Add smart friction reduction logic
+    -   Modify showConfirmDialog to accept featureType parameter
+    -   Update showSnoozeOptions to handle both home and explore
+    -   Create unified handleRedirectToggle function for both features
+    -   Ensure independent operation of friction mechanisms
+    -   _Requirements: 8.2, 8.3_
+    -   **After completion**: Run `npm run dev`
 
-    -   Track daily disable attempts in storage
-    -   Reduce friction after 3rd attempt in same day
-    -   Reset attempt counter daily
-    -   _Requirements: 7.5_
+-   [x] 10. Implement independent snooze timers for each feature
 
--   [ ] 11. Implement re-engagement reminder system
+    -   Support separate snooze end times for home and explore redirects
+    -   Update snooze status indicators to show correct feature status
+    -   Handle alarm management for multiple concurrent snoozes
+    -   Ensure snooze expiration works independently for each feature
+    -   _Requirements: 8.4_
+    -   **After completion**: Run `npm run dev`
 
-    -   Show subtle indicator after 24 hours of being disabled
-    -   Display gentle weekly reminders after 7 days
-    -   Add one-click re-enable option in reminders
-    -   Track dismissals and pause reminders after 3 dismissals
-    -   _Requirements: 4.1, 4.2, 4.3, 4.4_
+-   [x] 11. Update popup.js to handle Explore Redirect toggle events
 
--   [x] 12. Enhance background script for snooze management
+    -   Add event listener for exploreRedirect checkbox
+    -   Apply same friction flow as Home Redirect
+    -   Integrate with existing confirmation and snooze dialogs
+    -   Update save function to manage explore redirect rules
+    -   _Requirements: 8.2, 8.3_
+    -   **After completion**: Run `npm run dev`
 
-    -   Add alarm listener for snooze expiration
-    -   Implement automatic re-enable when snooze expires
-    -   Add optional notification when feature re-enables
-    -   _Requirements: 2.4_
+-   [x] 12. Add extension icon to popup header
 
--   [ ] 13. Update popup.js event handling for friction flow
+    -   Include extension icon next to H1 title in popup
+    -   Ensure proper sizing and alignment
+    -   Maintain existing header layout and spacing
+    -   _Requirements: 9.6_
+    -   **After completion**: Run `npm run dev`
 
-    -   Modify home redirect toggle handler to trigger friction flow
-    -   Integrate all friction components into smooth user experience
-    -   Ensure existing utility features (posts, notifications) remain unchanged
-    -   _Requirements: 1.1, 5.3, 7.1_
+-   [x] 13. Test UI improvements and interaction design
 
--   [ ] 14. Add error handling and fallback behavior
+    -   Verify Focus Features appear above Utility Features
+    -   Test entire option elements are clickable
+    -   Confirm hover states don't cause movement
+    -   Test green "Keep Enabled" button styling
+    -   _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+    -   **After completion**: Run `npm run dev`
 
-    -   Implement graceful degradation when friction features fail
-    -   Add try/catch blocks around storage and alarm operations
-    -   Ensure extension remains functional if friction system breaks
-    -   _Requirements: 7.4_
+-   [x] 14. Test Explore Redirect functionality
 
--   [ ] 15. Test complete friction flow and edge cases
-    -   Test full disable flow: confirmation → snooze → feedback → countdown
-    -   Verify snooze timing accuracy and automatic re-enable
-    -   Test multiple attempts and friction reduction
-    -   Validate visual improvements and responsive design
-    -   Test error scenarios and fallback behavior
-    -   _Requirements: All requirements validation_
+    -   Verify /explore paths redirect to bookmarks when enabled
+    -   Test /explore sub-paths (tabs/trending, tabs/sports, etc.)
+    -   Confirm friction mechanisms work for Explore Redirect
+    -   Test independent snooze timers for both features
+    -   Validate declarativeNetRequest rule management
+    -   _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+    -   **After completion**: Run `npm run dev`
+
+-   [ ] 15. Ensure backward compatibility and error handling
+    -   Test existing Home Redirect functionality remains unchanged
+    -   Verify storage migration handles new fields gracefully
+    -   Implement fallback behavior for missing storage fields
+    -   Test extension works with partial feature failures
+    -   _Requirements: 7.4, 8.4_
+    -   **After completion**: Run `npm run dev`

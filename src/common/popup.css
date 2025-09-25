@@ -37,8 +37,15 @@ header {
 .icon-and-title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
+
+.header-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 h1 {
     font-size: 18px;
     margin: 0;
@@ -61,7 +68,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 0 8px 0;
+    margin: 0 0 2px 0;
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
@@ -75,6 +82,7 @@ h1 {
     justify-content: center;
     width: 20px;
     height: 20px;
+    display: none;
 }
 
 .section-divider {
@@ -82,19 +90,6 @@ h1 {
     background: linear-gradient(90deg, var(--border), transparent);
     margin-bottom: 12px;
     opacity: 0.6;
-}
-
-/* Focus Features Special Styling */
-.focus-features .section-header {
-    color: #fbbf24;
-}
-
-.focus-features .section-icon {
-    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3));
-}
-
-.focus-features .section-divider {
-    background: linear-gradient(90deg, rgba(251, 191, 36, 0.3), transparent);
 }
 
 .options {
@@ -107,31 +102,22 @@ h1 {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 10px 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     border-radius: 12px;
     transition: all 0.2s ease;
     cursor: pointer;
     position: relative;
+    margin-bottom: 8px;
 }
 
 .option:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Focus Features Options Special Styling */
-.focus-features .option {
-    border-left: 3px solid rgba(251, 191, 36, 0.3);
-}
-
-.focus-features .option:hover {
-    border-left-color: rgba(251, 191, 36, 0.6);
-    background: rgba(251, 191, 36, 0.05);
-}
 .label-text {
     display: flex;
     flex-direction: column;
@@ -153,15 +139,6 @@ h1 {
     opacity: 0.9;
 }
 
-/* Focus Features Text Styling */
-.focus-features .label-text .title {
-    color: #fbbf24;
-}
-
-.focus-features .label-text .desc {
-    color: rgba(251, 191, 36, 0.7);
-}
-
 /* Toggle Switch Input */
 .switch input {
     opacity: 0;
@@ -173,8 +150,8 @@ h1 {
 .snooze-status {
     margin-top: 8px;
     padding: 8px 12px;
-    background: rgba(251, 191, 36, 0.1);
-    border: 1px solid rgba(251, 191, 36, 0.3);
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.25);
     border-radius: 8px;
     animation: fadeIn 0.3s ease;
 }
@@ -184,7 +161,7 @@ h1 {
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #fbbf24;
+    color: #d4af37;
 }
 
 .snooze-icon {
@@ -244,12 +221,6 @@ h1 {
 .switch input:checked + .slider:before {
     transform: translate(18px, -50%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-/* Focus Features Switch Special Styling */
-.focus-features .switch input:checked + .slider {
-    background: #fbbf24;
-    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
 }
 
 /* Animations */
@@ -341,7 +312,7 @@ h1 {
 .dialog-actions {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .dialog-btn {
@@ -356,27 +327,27 @@ h1 {
 }
 
 .dialog-btn-cancel {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text);
-    border: 1px solid var(--border);
+    background: var(--accent);
+    color: white;
+    border: 1px solid var(--accent);
 }
 
 .dialog-btn-cancel:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .dialog-btn-confirm {
-    background: #dc2626;
-    color: white;
-    border: 1px solid #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
 .dialog-btn-confirm:hover {
-    background: #b91c1c;
-    border-color: #b91c1c;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.5);
+    color: #f87171;
 }
 
 @keyframes slideIn {
@@ -410,8 +381,8 @@ h1 {
 .countdown-number {
     font-size: 48px;
     font-weight: 700;
-    color: #fbbf24;
-    text-shadow: 0 0 16px rgba(251, 191, 36, 0.4);
+    color: #d4af37;
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
     animation: countdownPulse 1s infinite;
     line-height: 1;
 }
@@ -486,10 +457,9 @@ h1 {
 }
 
 .snooze-option:hover {
-    background: rgba(251, 191, 36, 0.1);
-    border-color: rgba(251, 191, 36, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+    background: rgba(212, 175, 55, 0.08);
+    border-color: rgba(212, 175, 55, 0.25);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.12);
 }
 
 .snooze-option:active {
@@ -510,11 +480,11 @@ h1 {
 }
 
 .snooze-option:hover .snooze-time {
-    color: #fbbf24;
+    color: #d4af37;
 }
 
 .snooze-option:hover .snooze-desc {
-    color: rgba(251, 191, 36, 0.7);
+    color: rgba(212, 175, 55, 0.65);
 }
 
 .permanent-option {
@@ -541,7 +511,15 @@ h1 {
     background: rgba(220, 38, 38, 0.2);
     border-color: rgba(220, 38, 38, 0.5);
     color: #f87171;
-    transform: translateY(-1px);
+}
+
+/* Snooze dialog specific actions styling */
+.snooze-content .dialog-actions {
+    justify-content: stretch;
+}
+
+.snooze-content .dialog-btn-cancel {
+    width: 100%;
 }
 /* Responsive adjustments for small popup windows */
 @media (max-height: 500px) {

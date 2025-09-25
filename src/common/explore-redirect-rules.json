@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1002,
+        "priority": 1,
+        "action": {
+            "type": "redirect",
+            "redirect": { "url": "https://x.com/i/bookmarks" }
+        },
+        "condition": {
+            "regexFilter": "^https://x\\.com/explore(?:/.*)?(?:[?#].*)?$",
+            "resourceTypes": ["main_frame"]
+        }
+    }
+]
