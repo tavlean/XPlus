@@ -37,8 +37,15 @@ header {
 .icon-and-title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
+
+.header-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 h1 {
     font-size: 18px;
     margin: 0;

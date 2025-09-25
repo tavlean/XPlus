@@ -100,7 +100,7 @@
     -   _Requirements: 8.2, 8.3_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 12. Add extension icon to popup header
+-   [x] 12. Add extension icon to popup header
 
     -   Include extension icon next to H1 title in popup
     -   Ensure proper sizing and alignment
@@ -108,17 +108,16 @@
     -   _Requirements: 9.6_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 13. Test UI improvements and interaction design
+-   [x] 13. Test UI improvements and interaction design
 
     -   Verify Focus Features appear above Utility Features
     -   Test entire option elements are clickable
     -   Confirm hover states don't cause movement
-    -   Validate subtle color scheme for focus features
     -   Test green "Keep Enabled" button styling
     -   _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 14. Test Explore Redirect functionality
+-   [x] 14. Test Explore Redirect functionality
 
     -   Verify /explore paths redirect to bookmarks when enabled
     -   Test /explore sub-paths (tabs/trending, tabs/sports, etc.)
