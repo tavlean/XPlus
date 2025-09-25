@@ -46,7 +46,7 @@
     -   _Requirements: 9.4_
     -   **After completion**: Run `npm run dev`
 
--   [-] 6. Add Explore Redirect toggle to Focus Features section
+-   [x] 6. Add Explore Redirect toggle to Focus Features section
 
     -   Create new HTML option element for Explore Redirect
     -   Add toggle switch and descriptive text
@@ -55,7 +55,7 @@
     -   _Requirements: 8.5_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 7. Extend storage schema for Explore Redirect
+-   [x] 7. Extend storage schema for Explore Redirect
 
     -   Add exploreRedirect boolean setting to storage
     -   Add exploreSnoozeEndTime for independent snooze timing
@@ -64,7 +64,7 @@
     -   _Requirements: 8.4_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 8. Implement Explore Redirect declarativeNetRequest rules
+-   [x] 8. Implement Explore Redirect declarativeNetRequest rules
 
     -   Create ruleset_explore_redirect with /explore path matching
     -   Handle /explore and all sub-paths (/explore/tabs/\*, etc.)
@@ -73,7 +73,7 @@
     -   _Requirements: 8.1_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 9. Extend friction system to support both redirect features
+-   [x] 9. Extend friction system to support both redirect features
 
     -   Modify showConfirmDialog to accept featureType parameter
     -   Update showSnoozeOptions to handle both home and explore
@@ -82,7 +82,7 @@
     -   _Requirements: 8.2, 8.3_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 10. Implement independent snooze timers for each feature
+-   [x] 10. Implement independent snooze timers for each feature
 
     -   Support separate snooze end times for home and explore redirects
     -   Update snooze status indicators to show correct feature status
@@ -91,7 +91,7 @@
     -   _Requirements: 8.4_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 11. Update popup.js to handle Explore Redirect toggle events
+-   [x] 11. Update popup.js to handle Explore Redirect toggle events
 
     -   Add event listener for exploreRedirect checkbox
     -   Apply same friction flow as Home Redirect

@@ -3,14 +3,19 @@
     const $posts = q("#posts");
     const $notifs = q("#notifications");
     const $homeRedirect = q("#homeRedirect");
+    const $exploreRedirect = q("#exploreRedirect");
     const defaults = {
         posts: true,
         notifications: true,
         homeRedirect: false,
-        // Friction data fields
+        exploreRedirect: false,
+        // Friction data fields for home redirect
         snoozeEndTime: null,
         disableAttempts: 0,
         lastAttemptDate: null,
+        // Friction data fields for explore redirect
+        exploreSnoozeEndTime: null,
+        exploreDisableAttempts: 0,
     };
 
     // Helper functions for safe storage operations
@@ -38,38 +43,98 @@
         }
     }
 
-    // Helper function to get friction-specific data
-    function getFrictionData(callback) {
-        safeStorageGet(["snoozeEndTime", "disableAttempts", "lastAttemptDate"], (items) => {
-            callback({
-                snoozeEndTime: items.snoozeEndTime,
-                disableAttempts: items.disableAttempts || 0,
-                lastAttemptDate: items.lastAttemptDate,
-            });
+    // Helper function to get friction-specific data for a feature type
+    function getFrictionData(featureType, callback) {
+        // If no featureType provided, default to 'home' for backward compatibility
+        if (typeof featureType === "function") {
+            callback = featureType;
+            featureType = "home";
+        }
+
+        const keys = ["lastAttemptDate"];
+
+        if (featureType === "home") {
+            keys.push("snoozeEndTime", "disableAttempts");
+        } else if (featureType === "explore") {
+            keys.push("exploreSnoozeEndTime", "exploreDisableAttempts");
+        }
+
+        safeStorageGet(keys, (items) => {
+            if (featureType === "home") {
+                callback({
+                    snoozeEndTime: items.snoozeEndTime,
+                    disableAttempts: items.disableAttempts || 0,
+                    lastAttemptDate: items.lastAttemptDate,
+                });
+            } else if (featureType === "explore") {
+                callback({
+                    snoozeEndTime: items.exploreSnoozeEndTime,
+                    disableAttempts: items.exploreDisableAttempts || 0,
+                    lastAttemptDate: items.lastAttemptDate,
+                });
+            }
         });
     }
 
-    // Helper function to update friction data
-    function updateFrictionData(frictionData, callback) {
+    // Helper function to update friction data for a feature type
+    function updateFrictionData(featureType, frictionData, callback) {
+        // Handle backward compatibility - if first param is object, treat as old API
+        if (typeof featureType === "object") {
+            callback = frictionData;
+            frictionData = featureType;
+            featureType = "home";
+        }
+
         const updateData = {};
-        if (frictionData.snoozeEndTime !== undefined) {
-            updateData.snoozeEndTime = frictionData.snoozeEndTime;
+
+        if (featureType === "home") {
+            if (frictionData.snoozeEndTime !== undefined) {
+                updateData.snoozeEndTime = frictionData.snoozeEndTime;
+            }
+            if (frictionData.disableAttempts !== undefined) {
+                updateData.disableAttempts = frictionData.disableAttempts;
+            }
+        } else if (featureType === "explore") {
+            if (frictionData.snoozeEndTime !== undefined) {
+                updateData.exploreSnoozeEndTime = frictionData.snoozeEndTime;
+            }
+            if (frictionData.disableAttempts !== undefined) {
+                updateData.exploreDisableAttempts = frictionData.disableAttempts;
+            }
         }
-        if (frictionData.disableAttempts !== undefined) {
-            updateData.disableAttempts = frictionData.disableAttempts;
-        }
+
         if (frictionData.lastAttemptDate !== undefined) {
             updateData.lastAttemptDate = frictionData.lastAttemptDate;
         }
+
         safeStorageSet(updateData, callback);
     }
 
     // Confirmation dialog functions
-    function showConfirmDialog(message, onConfirm, onCancel) {
+    function showConfirmDialog(featureType, message, onConfirm, onCancel) {
+        // Handle backward compatibility - if first param is string message, shift params
+        if (typeof featureType === "string" && typeof message === "function") {
+            onCancel = onConfirm;
+            onConfirm = message;
+            message = featureType;
+            featureType = "home";
+        }
+
         const dialog = q("#confirmDialog");
         const messageEl = q(".dialog-message");
         const confirmBtn = q("#confirmProceed");
         const cancelBtn = q("#confirmCancel");
+
+        // Set feature-specific message if not provided
+        if (!message) {
+            if (featureType === "home") {
+                message =
+                    "The Home Redirect feature helps maintain your focus by redirecting you to your bookmarks instead of distracting social feeds. Are you sure you want to disable this productivity feature?";
+            } else if (featureType === "explore") {
+                message =
+                    "The Explore Redirect feature helps maintain your focus by redirecting you away from trending content and discovery feeds. Are you sure you want to disable this productivity feature?";
+            }
+        }
 
         // Set the message
         if (message) {
@@ -108,7 +173,15 @@
     }
 
     // Snooze options dialog functions
-    function showSnoozeDialog(onSnoozeSelect, onPermanentDisable, onCancel) {
+    function showSnoozeOptions(featureType, onSnoozeSelect, onPermanentDisable, onCancel) {
+        // Handle backward compatibility - if first param is function, shift params
+        if (typeof featureType === "function") {
+            onCancel = onPermanentDisable;
+            onPermanentDisable = onSnoozeSelect;
+            onSnoozeSelect = featureType;
+            featureType = "home";
+        }
+
         const dialog = q("#snoozeDialog");
         const snoozeOptions = dialog.querySelectorAll(".snooze-option");
         const permanentBtn = q("#permanentDisable");
@@ -215,13 +288,20 @@
         });
     }
 
-    // Helper function to reset daily attempt counter if needed
-    function resetDailyAttemptsIfNeeded(callback) {
-        getFrictionData((frictionData) => {
+    // Helper function to reset daily attempt counter if needed for a feature type
+    function resetDailyAttemptsIfNeeded(featureType, callback) {
+        // Handle backward compatibility - if first param is function, treat as old API
+        if (typeof featureType === "function") {
+            callback = featureType;
+            featureType = "home";
+        }
+
+        getFrictionData(featureType, (frictionData) => {
             const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
             if (frictionData.lastAttemptDate !== today) {
                 updateFrictionData(
+                    featureType,
                     {
                         disableAttempts: 0,
                         lastAttemptDate: today,
@@ -270,7 +350,13 @@
     }
 
     // Helper function to handle snooze selection with countdown
-    function handleSnoozeSelection(duration) {
+    function handleSnoozeSelection(featureType, duration) {
+        // Handle backward compatibility - if first param is duration string, shift params
+        if (typeof featureType === "string" && !duration) {
+            duration = featureType;
+            featureType = "home";
+        }
+
         const countdownSeconds = getCountdownDuration(duration);
         const durationText = getSnoozeDurationText(duration);
 
@@ -290,22 +376,35 @@
                 const snoozeEndTime = calculateSnoozeEndTime(duration);
 
                 // Store snooze data and disable the feature
-                updateFrictionData({ snoozeEndTime }, () => {
-                    // Disable the feature
-                    $homeRedirect.checked = false;
-                    save();
+                updateFrictionData(featureType, { snoozeEndTime }, () => {
+                    // Disable the appropriate feature
+                    if (featureType === "home") {
+                        $homeRedirect.checked = false;
+                        updateSnoozeStatusIndicator();
 
-                    // Update the snooze status indicator
-                    updateSnoozeStatusIndicator();
+                        // Set up alarm for home snooze expiration
+                        if (chrome.alarms) {
+                            chrome.alarms.clear("homeSnoozeExpired", () => {
+                                chrome.alarms.create("homeSnoozeExpired", { when: snoozeEndTime });
+                            });
+                        }
+                    } else if (featureType === "explore") {
+                        if ($exploreRedirect) {
+                            $exploreRedirect.checked = false;
+                        }
+                        updateExploreSnoozeStatusIndicator();
 
-                    // Set up alarm for snooze expiration
-                    if (chrome.alarms) {
-                        // Clear any existing snooze alarm first
-                        chrome.alarms.clear("snoozeExpired", () => {
-                            // Create new alarm for this snooze period
-                            chrome.alarms.create("snoozeExpired", { when: snoozeEndTime });
-                        });
+                        // Set up alarm for explore snooze expiration
+                        if (chrome.alarms) {
+                            chrome.alarms.clear("exploreSnoozeExpired", () => {
+                                chrome.alarms.create("exploreSnoozeExpired", {
+                                    when: snoozeEndTime,
+                                });
+                            });
+                        }
                     }
+
+                    save();
                 });
 
                 // Reset dialog title and message for future permanent disable use
@@ -315,7 +414,13 @@
             },
             () => {
                 // User cancelled countdown - keep it enabled
-                $homeRedirect.checked = true;
+                if (featureType === "home") {
+                    $homeRedirect.checked = true;
+                } else if (featureType === "explore") {
+                    if ($exploreRedirect) {
+                        $exploreRedirect.checked = true;
+                    }
+                }
 
                 // Reset dialog title and message
                 dialogTitle.textContent = "Disabling in...";
@@ -331,10 +436,15 @@
             $notifs.checked = !!items.notifications;
             $homeRedirect.checked = !!items.homeRedirect;
 
-            // Check if there's an active snooze that has expired
+            // Handle exploreRedirect if element exists
+            if ($exploreRedirect) {
+                $exploreRedirect.checked = !!items.exploreRedirect;
+            }
+
+            // Check if there's an active home snooze that has expired
             if (items.snoozeEndTime && items.snoozeEndTime <= Date.now()) {
-                // Snooze has expired, clear it and re-enable the feature
-                updateFrictionData({ snoozeEndTime: null }, () => {
+                // Home snooze has expired, clear it and re-enable the feature
+                updateFrictionData("home", { snoozeEndTime: null }, () => {
                     if (!items.homeRedirect) {
                         // Re-enable the feature if it was disabled due to snooze
                         $homeRedirect.checked = true;
@@ -347,52 +457,107 @@
                 // Update the snooze indicator on load
                 updateSnoozeStatusIndicator();
             }
+
+            // Check if there's an active explore snooze that has expired
+            if (items.exploreSnoozeEndTime && items.exploreSnoozeEndTime <= Date.now()) {
+                // Explore snooze has expired, clear it and re-enable the feature
+                updateFrictionData("explore", { snoozeEndTime: null }, () => {
+                    if (!items.exploreRedirect && $exploreRedirect) {
+                        // Re-enable the feature if it was disabled due to snooze
+                        $exploreRedirect.checked = true;
+                        save();
+                    }
+                    // Update the explore snooze indicator after clearing expired snooze
+                    updateExploreSnoozeStatusIndicator();
+                });
+            } else {
+                // Update the explore snooze indicator on load
+                updateExploreSnoozeStatusIndicator();
+            }
         });
     }
 
     function save() {
-        safeStorageSet(
-            {
-                posts: $posts.checked,
-                notifications: $notifs.checked,
-                homeRedirect: $homeRedirect.checked,
-            },
-            () => {
-                // Update DNR rules when home redirect setting changes
-                if (chrome.declarativeNetRequest) {
-                    if ($homeRedirect.checked) {
-                        chrome.declarativeNetRequest.updateEnabledRulesets({
-                            enableRulesetIds: ["ruleset_home_redirect"],
-                        });
+        const saveData = {
+            posts: $posts.checked,
+            notifications: $notifs.checked,
+            homeRedirect: $homeRedirect.checked,
+        };
+
+        // Add exploreRedirect if element exists
+        if ($exploreRedirect) {
+            saveData.exploreRedirect = $exploreRedirect.checked;
+        }
+
+        safeStorageSet(saveData, () => {
+            // Update DNR rules when redirect settings change
+            if (chrome.declarativeNetRequest) {
+                const enableRulesets = [];
+                const disableRulesets = [];
+
+                // Handle home redirect rules
+                if ($homeRedirect.checked) {
+                    enableRulesets.push("ruleset_home_redirect");
+                } else {
+                    disableRulesets.push("ruleset_home_redirect");
+                }
+
+                // Handle explore redirect rules if element exists
+                if ($exploreRedirect) {
+                    if ($exploreRedirect.checked) {
+                        enableRulesets.push("ruleset_explore_redirect");
                     } else {
-                        chrome.declarativeNetRequest.updateEnabledRulesets({
-                            disableRulesetIds: ["ruleset_home_redirect"],
-                        });
+                        disableRulesets.push("ruleset_explore_redirect");
                     }
                 }
+
+                // Apply rule changes in a single call for better performance
+                const updateOptions = {};
+                if (enableRulesets.length > 0) {
+                    updateOptions.enableRulesetIds = enableRulesets;
+                }
+                if (disableRulesets.length > 0) {
+                    updateOptions.disableRulesetIds = disableRulesets;
+                }
+
+                if (Object.keys(updateOptions).length > 0) {
+                    chrome.declarativeNetRequest.updateEnabledRulesets(updateOptions);
+                }
             }
-        );
+        });
     }
 
-    // Handle home redirect toggle with friction
-    function handleHomeRedirectToggle(e) {
+    // Unified function to handle redirect toggle with friction for both home and explore
+    function handleRedirectToggle(featureType, toggleElement, e) {
         // If user is enabling the feature, clear any active snooze
         if (e.target.checked) {
-            getFrictionData((frictionData) => {
+            getFrictionData(featureType, (frictionData) => {
                 if (frictionData.snoozeEndTime) {
                     // Clear the snooze timer and alarm
-                    updateFrictionData({ snoozeEndTime: null }, () => {
+                    updateFrictionData(featureType, { snoozeEndTime: null }, () => {
                         if (chrome.alarms) {
-                            chrome.alarms.clear("snoozeExpired");
+                            const alarmName =
+                                featureType === "home"
+                                    ? "homeSnoozeExpired"
+                                    : "exploreSnoozeExpired";
+                            chrome.alarms.clear(alarmName);
                         }
-                        // Update the snooze indicator after clearing snooze
-                        updateSnoozeStatusIndicator();
+                        // Update the appropriate snooze indicator after clearing snooze
+                        if (featureType === "home") {
+                            updateSnoozeStatusIndicator();
+                        } else if (featureType === "explore") {
+                            updateExploreSnoozeStatusIndicator();
+                        }
                         // Save after snooze is fully cleared
                         save();
                     });
                 } else {
                     // No snooze to clear, just update indicator and save
-                    updateSnoozeStatusIndicator();
+                    if (featureType === "home") {
+                        updateSnoozeStatusIndicator();
+                    } else if (featureType === "explore") {
+                        updateExploreSnoozeStatusIndicator();
+                    }
                     save();
                 }
             });
@@ -406,13 +571,15 @@
             e.target.checked = true; // Keep it checked while showing confirmation
 
             showConfirmDialog(
-                "The Home Redirect feature helps maintain your focus by redirecting you to your bookmarks instead of distracting social feeds. Are you sure you want to disable this productivity feature?",
+                featureType,
+                null, // Use default message for the feature type
                 () => {
                     // User confirmed - show snooze options
-                    showSnoozeDialog(
+                    showSnoozeOptions(
+                        featureType,
                         (duration) => {
                             // User selected snooze option
-                            handleSnoozeSelection(duration);
+                            handleSnoozeSelection(featureType, duration);
                         },
                         () => {
                             // User selected permanent disable - show countdown
@@ -430,24 +597,24 @@
                                 5, // 5 second countdown for permanent disable
                                 () => {
                                     // Countdown completed - proceed with permanent disable
-                                    $homeRedirect.checked = false;
+                                    toggleElement.checked = false;
                                     save();
                                 },
                                 () => {
                                     // User cancelled countdown - keep it enabled
-                                    $homeRedirect.checked = true;
+                                    toggleElement.checked = true;
                                 }
                             );
                         },
                         () => {
                             // User cancelled snooze dialog - keep it enabled
-                            $homeRedirect.checked = true;
+                            toggleElement.checked = true;
                         }
                     );
                 },
                 () => {
                     // User cancelled confirmation - keep it enabled
-                    $homeRedirect.checked = true;
+                    toggleElement.checked = true;
                 }
             );
         } else {
@@ -456,12 +623,24 @@
         }
     }
 
+    // Handle home redirect toggle with friction (wrapper for backward compatibility)
+    function handleHomeRedirectToggle(e) {
+        handleRedirectToggle("home", $homeRedirect, e);
+    }
+
+    // Handle explore redirect toggle with friction
+    function handleExploreRedirectToggle(e) {
+        if ($exploreRedirect) {
+            handleRedirectToggle("explore", $exploreRedirect, e);
+        }
+    }
+
     // Snooze status indicator functions
     function updateSnoozeStatusIndicator() {
         const snoozeStatus = q("#snoozeStatus");
         const snoozeTimeEl = q("#snoozeTime");
 
-        getFrictionData((frictionData) => {
+        getFrictionData("home", (frictionData) => {
             if (frictionData.snoozeEndTime && frictionData.snoozeEndTime > Date.now()) {
                 // Snooze is active - show the indicator
                 const remainingTime = frictionData.snoozeEndTime - Date.now();
@@ -475,7 +654,7 @@
 
                 // If there was a snooze time but it's expired, clear it
                 if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
-                    updateFrictionData({ snoozeEndTime: null });
+                    updateFrictionData("home", { snoozeEndTime: null });
                 }
             }
         });
@@ -507,13 +686,45 @@
         }
     }
 
+    // Placeholder function for explore snooze status indicator (will be implemented in later task)
+    function updateExploreSnoozeStatusIndicator() {
+        const exploreSnoozeStatus = q("#exploreSnoozeStatus");
+        if (!exploreSnoozeStatus) return; // Element doesn't exist yet
+
+        getFrictionData("explore", (frictionData) => {
+            if (frictionData.snoozeEndTime && frictionData.snoozeEndTime > Date.now()) {
+                // Snooze is active - show the indicator
+                const remainingTime = frictionData.snoozeEndTime - Date.now();
+                const timeText = formatRemainingTime(remainingTime);
+
+                const exploreSnoozeTimeEl = q("#exploreSnoozeTime");
+                if (exploreSnoozeTimeEl) {
+                    exploreSnoozeTimeEl.textContent = timeText;
+                    exploreSnoozeStatus.style.display = "block";
+                }
+            } else {
+                // No active snooze - hide the indicator
+                exploreSnoozeStatus.style.display = "none";
+
+                // If there was a snooze time but it's expired, clear it
+                if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
+                    updateFrictionData("explore", { snoozeEndTime: null });
+                }
+            }
+        });
+    }
+
     // Set up periodic updates for the snooze indicator
     function startSnoozeIndicatorUpdates() {
         // Update immediately
         updateSnoozeStatusIndicator();
+        updateExploreSnoozeStatusIndicator();
 
         // Update every 30 seconds to keep the time current
-        setInterval(updateSnoozeStatusIndicator, 30000);
+        setInterval(() => {
+            updateSnoozeStatusIndicator();
+            updateExploreSnoozeStatusIndicator();
+        }, 30000);
     }
 
     // Function to make entire option elements clickable with asymmetric behavior for focus features
@@ -529,7 +740,8 @@
             e.stopPropagation();
 
             // Check if this is a focus feature (has friction mechanism)
-            const isFocusFeature = toggleElement.id === "homeRedirect"; // Add more focus features here as needed
+            const isFocusFeature =
+                toggleElement.id === "homeRedirect" || toggleElement.id === "exploreRedirect";
 
             if (isFocusFeature) {
                 // For focus features: only allow enabling via area click, require toggle click to disable
@@ -557,6 +769,11 @@
     $posts.addEventListener("change", save);
     $notifs.addEventListener("change", save);
     $homeRedirect.addEventListener("change", handleHomeRedirectToggle);
+
+    // Add explore redirect event listener if element exists
+    if ($exploreRedirect) {
+        $exploreRedirect.addEventListener("change", handleExploreRedirectToggle);
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
         load();
