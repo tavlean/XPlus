@@ -318,14 +318,15 @@ h1 {
 }
 
 .dialog-btn-cancel {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text);
-    border: 1px solid var(--border);
+    background: #16a34a;
+    color: white;
+    border: 1px solid #16a34a;
 }
 
 .dialog-btn-cancel:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: #15803d;
+    border-color: #15803d;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
 }
 
 .dialog-btn-confirm {

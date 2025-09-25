@@ -37,7 +37,7 @@
     -   _Requirements: 9.2_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 5. Style "Keep Enabled" button with green color
+-   [x] 5. Style "Keep Enabled" button with green color
 
     -   Update CSS for .dialog-btn-cancel in snooze dialog
     -   Use green background and appropriate hover states
@@ -46,7 +46,7 @@
     -   _Requirements: 9.4_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 6. Add Explore Redirect toggle to Focus Features section
+-   [-] 6. Add Explore Redirect toggle to Focus Features section
 
     -   Create new HTML option element for Explore Redirect
     -   Add toggle switch and descriptive text
