@@ -28,7 +28,7 @@
     -   _Requirements: 9.1, 9.5_
     -   **After completion**: Run `npm run dev`
 
--   [ ] 4. Make entire option elements clickable
+-   [x] 4. Make entire option elements clickable
 
     -   Add click event listeners to entire .option elements
     -   Ensure clicks anywhere on option toggle the setting

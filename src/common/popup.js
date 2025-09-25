@@ -516,6 +516,43 @@
         setInterval(updateSnoozeStatusIndicator, 30000);
     }
 
+    // Function to make entire option elements clickable with asymmetric behavior for focus features
+    function makeOptionClickable(optionElement, toggleElement) {
+        optionElement.addEventListener("click", (e) => {
+            // Prevent triggering if the click was on the toggle switch itself
+            // This prevents double-triggering when clicking directly on the switch
+            if (e.target.closest(".switch")) {
+                return;
+            }
+
+            // Prevent event bubbling
+            e.stopPropagation();
+
+            // Check if this is a focus feature (has friction mechanism)
+            const isFocusFeature = toggleElement.id === "homeRedirect"; // Add more focus features here as needed
+
+            if (isFocusFeature) {
+                // For focus features: only allow enabling via area click, require toggle click to disable
+                if (!toggleElement.checked) {
+                    // Feature is currently disabled, allow enabling via area click
+                    toggleElement.checked = true;
+
+                    // Trigger the change event to maintain existing functionality
+                    const changeEvent = new Event("change", { bubbles: true });
+                    toggleElement.dispatchEvent(changeEvent);
+                }
+                // If feature is enabled, do nothing - user must click toggle to disable (with friction)
+            } else {
+                // For utility features: maintain original toggle behavior
+                toggleElement.checked = !toggleElement.checked;
+
+                // Trigger the change event to maintain existing functionality
+                const changeEvent = new Event("change", { bubbles: true });
+                toggleElement.dispatchEvent(changeEvent);
+            }
+        });
+    }
+
     // Add event listeners
     $posts.addEventListener("change", save);
     $notifs.addEventListener("change", save);
@@ -524,5 +561,15 @@
     document.addEventListener("DOMContentLoaded", () => {
         load();
         startSnoozeIndicatorUpdates();
+
+        // Make entire option elements clickable
+        const optionElements = document.querySelectorAll(".option");
+        optionElements.forEach((optionElement) => {
+            // Find the checkbox within this option
+            const checkbox = optionElement.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                makeOptionClickable(optionElement, checkbox);
+            }
+        });
     });
 })();
