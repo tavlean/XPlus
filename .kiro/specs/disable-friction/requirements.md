@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This feature adds intentional friction to the process of disabling the "Home Redirect" functionality in the Xtab browser extension. The goal is to encourage users to maintain their focus and productivity by making it slightly more difficult to turn off the redirect-to-bookmarks feature, while still preserving user autonomy and choice.
+This feature adds intentional friction to the process of disabling the "Home Redirect" functionality in the XPlus browser extension. The goal is to encourage users to maintain their focus and productivity by making it slightly more difficult to turn off the redirect-to-bookmarks feature, while still preserving user autonomy and choice.
 
 ## Requirements
 

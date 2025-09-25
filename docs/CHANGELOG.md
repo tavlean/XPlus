@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Xtab will be documented in this file.
+All notable changes to XPlus will be documented in this file.
 
 ## [1.3.0] - 2025-01-25
 

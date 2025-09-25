@@ -12,7 +12,7 @@ function isNotificationsLink(link) {
 }
 
 // User settings (defaults)
-let xtabSettings = {
+let xplusSettings = {
     posts: true,
     notifications: true,
 };
@@ -21,15 +21,15 @@ let xtabSettings = {
 try {
     if (chrome?.storage?.sync) {
         chrome.storage.sync.get({ posts: true, notifications: true }, (items) => {
-            xtabSettings = { posts: !!items.posts, notifications: !!items.notifications };
+            xplusSettings = { posts: !!items.posts, notifications: !!items.notifications };
         });
         chrome.storage.onChanged?.addListener((changes, area) => {
             if (area === "sync") {
                 if (Object.prototype.hasOwnProperty.call(changes, "posts")) {
-                    xtabSettings.posts = !!changes.posts.newValue;
+                    xplusSettings.posts = !!changes.posts.newValue;
                 }
                 if (Object.prototype.hasOwnProperty.call(changes, "notifications")) {
-                    xtabSettings.notifications = !!changes.notifications.newValue;
+                    xplusSettings.notifications = !!changes.notifications.newValue;
                 }
             }
         });
@@ -58,7 +58,7 @@ function safeOpenInNewTab(url) {
 
 // Function to handle post link clicks
 function handlePostLinkClick(event) {
-    if (!xtabSettings.posts) return; // feature disabled
+    if (!xplusSettings.posts) return; // feature disabled
     if (isPostLink(event.currentTarget)) {
         event.preventDefault();
         const fullUrl = event.currentTarget.href;
@@ -68,7 +68,7 @@ function handlePostLinkClick(event) {
 
 // Function to handle notifications link clicks
 function handleNotificationsLinkClick(event) {
-    if (!xtabSettings.notifications) return; // feature disabled
+    if (!xplusSettings.notifications) return; // feature disabled
     if (isNotificationsLink(event.currentTarget)) {
         event.preventDefault();
         const fullUrl = event.currentTarget.href;
@@ -104,6 +104,6 @@ observer.observe(document.body, {
 });
 
 // Initial setup
-if (xtabSettings.posts || xtabSettings.notifications) {
+if (xplusSettings.posts || xplusSettings.notifications) {
     addClickHandlers();
 }

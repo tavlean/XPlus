@@ -1,4 +1,4 @@
-# Xtab
+# XPlus
 
 A cross-browser extension that automatically opens X/Twitter post links and notifications in new tabs when clicked, plus redirects the home/feed page to bookmarks. Supports both Chrome and Firefox.
 
@@ -31,7 +31,7 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 
 1. Clone this repository
 2. Run `npm run build:chrome` to generate the Chrome distribution file
-3. Find the generated `xtab-chrome.zip` in the `dist` directory
+3. Find the generated `xplus-chrome.zip` in the `dist` directory
 4. Open Chrome and navigate to `chrome://extensions/`
 5. Enable "Developer mode" in the top right
 6. Drag and drop the zip file into the extensions page
@@ -52,10 +52,10 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 
 1. Clone this repository
 2. Run `npm run build:firefox` to generate the Firefox distribution file
-3. Find the generated `xtab-firefox.zip` in the `dist` directory
+3. Find the generated `xplus-firefox.zip` in the `dist` directory
 4. Open Firefox and navigate to `about:addons`
 5. Click the gear icon and select "Install Add-on From File..."
-6. Select the `xtab-firefox.zip` file
+6. Select the `xplus-firefox.zip` file
 
 ## Usage
 
@@ -123,8 +123,8 @@ Click the extension icon to open the popup and manage features:
 │   ├── firefox-dev/       # Firefox dev folder for temporary add-on
 │   ├── chrome-build/      # Chrome staging for production zip
 │   ├── firefox-build/     # Firefox staging for production zip
-│   ├── xtab-chrome.zip    # Chrome Web Store distribution
-│   └── xtab-firefox.zip   # Firefox Add-ons distribution
+│   ├── xplus-chrome.zip    # Chrome Web Store distribution
+│   └── xplus-firefox.zip   # Firefox Add-ons distribution
 ├── .gitignore             # Git ignore file
 └── package.json           # NPM package configuration
 ```
@@ -146,8 +146,8 @@ npm run dev:firefox
 
 # Production builds - stages into dist/*-build then zips
 npm run build            # Build both Chrome and Firefox
-npm run build:chrome     # Build Chrome (dist/xtab-chrome.zip)
-npm run build:firefox    # Build Firefox (dist/xtab-firefox.zip)
+npm run build:chrome     # Build Chrome (dist/xplus-chrome.zip)
+npm run build:firefox    # Build Firefox (dist/xplus-firefox.zip)
 
 # Clean build artifacts
 npm run clean
@@ -155,8 +155,8 @@ npm run clean
 
 Build files are generated in the `dist/` directory:
 
--   `xtab-chrome.zip` - Ready for submission to the Chrome Web Store
--   `xtab-firefox.zip` - Ready for submission to the Firefox Add-ons store
+-   `xplus-chrome.zip` - Ready for submission to the Chrome Web Store
+-   `xplus-firefox.zip` - Ready for submission to the Firefox Add-ons store
 
 ## License
 

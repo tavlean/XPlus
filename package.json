@@ -1,5 +1,5 @@
 {
-    "name": "xtab",
+    "name": "xplus",
     "version": "1.1.0",
     "description": "Browser extension that opens X (Twitter) post links and notifications in new tabs",
     "main": "index.js",
@@ -11,8 +11,8 @@
         "dev:chrome": "rm -rf dist/chrome-dev && mkdir -p dist/chrome-dev/assets && cp -r shared-assets/* dist/chrome-dev/assets/ && cp -r src/common/* dist/chrome-dev/ && cp src/chrome/manifest.json dist/chrome-dev/",
         "dev:firefox": "rm -rf dist/firefox-dev && mkdir -p dist/firefox-dev/assets && cp -r shared-assets/* dist/firefox-dev/assets/ && cp -r src/common/* dist/firefox-dev/ && cp src/firefox/manifest.json dist/firefox-dev/",
         "build": "npm run build:chrome && npm run build:firefox",
-        "build:chrome": "rm -rf dist/chrome-build && mkdir -p dist/chrome-build/assets && cp -r shared-assets/* dist/chrome-build/assets/ && cp -r src/common/* dist/chrome-build/ && cp src/chrome/manifest.json dist/chrome-build/ && cd dist/chrome-build && zip -r ../xtab-chrome.zip *",
-        "build:firefox": "rm -rf dist/firefox-build && mkdir -p dist/firefox-build/assets && cp -r shared-assets/* dist/firefox-build/assets/ && cp -r src/common/* dist/firefox-build/ && cp src/firefox/manifest.json dist/firefox-build/ && cd dist/firefox-build && zip -r ../xtab-firefox.zip *"
+        "build:chrome": "rm -rf dist/chrome-build && mkdir -p dist/chrome-build/assets && cp -r shared-assets/* dist/chrome-build/assets/ && cp -r src/common/* dist/chrome-build/ && cp src/chrome/manifest.json dist/chrome-build/ && cd dist/chrome-build && zip -r ../xplus-chrome.zip *",
+        "build:firefox": "rm -rf dist/firefox-build && mkdir -p dist/firefox-build/assets && cp -r shared-assets/* dist/firefox-build/assets/ && cp -r src/common/* dist/firefox-build/ && cp src/firefox/manifest.json dist/firefox-build/ && cd dist/firefox-build && zip -r ../xplus-firefox.zip *"
     },
     "keywords": [
         "chrome-extension",

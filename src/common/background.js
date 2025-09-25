@@ -86,7 +86,7 @@ function showSnoozeExpirationNotification() {
             chrome.notifications.create("snooze-expired", {
                 type: "basic",
                 iconUrl: "../shared-assets/icon48.png", // Corrected icon path
-                title: "Xtab Focus Feature Re-enabled",
+                title: "XPlus Focus Feature Re-enabled",
                 message:
                     "Your Home Redirect feature is now active again to help maintain your focus.",
                 silent: false, // Brief, non-intrusive notification

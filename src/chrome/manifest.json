@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Xtab",
+    "name": "XPlus - Disable Feed & More on 𝕏",
     "version": "1.3.0",
     "description": "Open X/Twitter post links & notifications in new tab. Redirect home/feed to bookmarks",
     "permissions": ["tabs", "storage", "declarativeNetRequest", "alarms", "notifications"],
@@ -9,7 +9,7 @@
         "service_worker": "background.js"
     },
     "action": {
-        "default_title": "Xtab",
+        "default_title": "XPlus",
         "default_popup": "popup.html"
     },
     "declarative_net_request": {
