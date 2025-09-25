@@ -68,7 +68,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 0 0 8px 0;
+    margin: 0 0 2px 0;
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
@@ -82,6 +82,7 @@ h1 {
     justify-content: center;
     width: 20px;
     height: 20px;
+    display: none;
 }
 
 .section-divider {
@@ -101,13 +102,14 @@ h1 {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 10px 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
     border-radius: 12px;
     transition: all 0.2s ease;
     cursor: pointer;
     position: relative;
+    margin-bottom: 8px;
 }
 
 .option:hover {
@@ -310,7 +312,7 @@ h1 {
 .dialog-actions {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .dialog-btn {
@@ -325,27 +327,27 @@ h1 {
 }
 
 .dialog-btn-cancel {
-    background: #16a34a;
+    background: var(--accent);
     color: white;
-    border: 1px solid #16a34a;
+    border: 1px solid var(--accent);
 }
 
 .dialog-btn-cancel:hover {
-    background: #15803d;
-    border-color: #15803d;
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .dialog-btn-confirm {
-    background: #dc2626;
-    color: white;
-    border: 1px solid #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
 .dialog-btn-confirm:hover {
-    background: #b91c1c;
-    border-color: #b91c1c;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.5);
+    color: #f87171;
 }
 
 @keyframes slideIn {
@@ -509,6 +511,15 @@ h1 {
     background: rgba(220, 38, 38, 0.2);
     border-color: rgba(220, 38, 38, 0.5);
     color: #f87171;
+}
+
+/* Snooze dialog specific actions styling */
+.snooze-content .dialog-actions {
+    justify-content: stretch;
+}
+
+.snooze-content .dialog-btn-cancel {
+    width: 100%;
 }
 /* Responsive adjustments for small popup windows */
 @media (max-height: 500px) {

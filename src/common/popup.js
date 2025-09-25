@@ -121,9 +121,17 @@
         }
 
         const dialog = q("#confirmDialog");
+        const titleEl = q("#dialogTitle");
         const messageEl = q(".dialog-message");
         const confirmBtn = q("#confirmProceed");
         const cancelBtn = q("#confirmCancel");
+
+        // Set feature-specific title
+        if (featureType === "home") {
+            titleEl.textContent = "Disable Home Redirect?";
+        } else if (featureType === "explore") {
+            titleEl.textContent = "Disable Explore Redirect?";
+        }
 
         // Set feature-specific message if not provided
         if (!message) {
