@@ -4,16 +4,16 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 
 ## Features
 
--   **Smart Tab Opening**: Automatically opens X/Twitter post links in new tabs when clicking on post timestamps
--   **Notification Management**: Automatically opens notifications in new tabs when clicking the notifications link
--   **Focus-Friendly Home Redirect**: Redirects feed (/home) to bookmarks automatically to reduce distractions
--   **Thoughtful Settings Control**: Enhanced popup with organized sections and smart friction for focus features
+-   Smart Tab Opening: Automatically opens X/Twitter post links in new tabs when clicking on post timestamps
+-   Notification Management: Automatically opens notifications in new tabs when clicking the notifications link
+-   Focus-Friendly Home Redirect: Redirects feed (/home) to bookmarks automatically to reduce distractions
+-   Thoughtful Settings Control: Enhanced popup with organized sections and smart friction for focus features
     -   Gentle confirmation before disabling productivity features
     -   Snooze options (15 min, 1 hour, 4 hours, until tomorrow) instead of permanent disable
     -   Automatic re-enable when snooze period expires
--   **Seamless Experience**: Works with dynamically loaded content and SPA navigation
--   **Selective Impact**: Only affects specific links and pages, leaving other functionality unchanged
--   **Lightweight and Efficient**: Minimal resource usage with robust error handling
+-   Seamless Experience: Works with dynamically loaded content and SPA navigation
+-   Selective Impact: Only affects specific links and pages, leaving other functionality unchanged
+-   Lightweight and Efficient: Minimal resource usage with robust error handling
 
 ## Installation
 
