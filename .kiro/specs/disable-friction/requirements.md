@@ -28,18 +28,6 @@ This feature adds intentional friction to the process of disabling the "Home Red
 3. WHEN a snooze period is active THEN the system SHALL display the remaining time in the popup interface
 4. WHEN a snooze period expires THEN the system SHALL show a brief notification that the feature has been re-enabled
 
-<!-- ### Requirement 3
-
-**User Story:** As a user who wants to permanently disable the feature, I want to provide a reason for my decision, so that the extension can learn from user feedback and I can reflect on my choice.
-
-#### Acceptance Criteria
-
-1. WHEN a user chooses permanent disable over snooze options THEN the system SHALL present a feedback form with common reasons
-2. WHEN the feedback form is displayed THEN the system SHALL include options like "Too intrusive", "Prefer manual navigation", "Technical issues", and "Other"
-3. WHEN "Other" is selected THEN the system SHALL provide a text field for custom feedback
-4. WHEN feedback is submitted THEN the system SHALL store it locally for potential future analysis
-5. WHEN feedback is provided THEN the system SHALL proceed with the permanent disable after a 5-second reflection period -->
-
 ### Requirement 4
 
 **User Story:** As a user who has disabled the feature, I want gentle reminders about re-enabling it, so that I can reconsider my decision periodically without being annoyed.
@@ -57,10 +45,10 @@ This feature adds intentional friction to the process of disabling the "Home Red
 
 #### Acceptance Criteria
 
-1. WHEN the popup interface loads THEN the system SHALL display settings in two distinct sections: "Utility Features" and "Focus Features"
+1. WHEN the popup interface loads THEN the system SHALL display settings in two distinct sections: "Focus Features" at the top and "Utility Features" at the bottom
 2. WHEN the sections are displayed THEN the system SHALL use visual separators and different styling to distinguish between them
 3. WHEN utility features are shown THEN the system SHALL include Posts and Notifications toggles with standard toggle behavior
-4. WHEN focus features are shown THEN the system SHALL include Home Redirect with enhanced friction mechanisms
+4. WHEN focus features are shown THEN the system SHALL include Home Redirect and Explore Redirect with enhanced friction mechanisms
 5. WHEN the interface is rendered THEN the system SHALL use improved visual design with better spacing, typography, and visual hierarchy
 
 ### Requirement 6
@@ -86,3 +74,28 @@ This feature adds intentional friction to the process of disabling the "Home Red
 3. WHEN confirmation dialogs appear THEN the system SHALL use respectful, non-judgmental language
 4. WHEN a user has gone through the full disable process THEN the system SHALL respect their choice without additional barriers
 5. IF a user disables and re-enables the feature multiple times in a day THEN the system SHALL reduce friction on subsequent attempts
+
+### Requirement 8
+
+**User Story:** As a productivity-focused user, I want to redirect explore pages (/explore and all sub-paths) to bookmarks, so that I avoid getting distracted by trending content and discovery feeds.
+
+#### Acceptance Criteria
+
+1. WHEN a user navigates to any /explore path (including /explore/tabs/trending, /explore/tabs/sports, etc.) THEN the system SHALL redirect to the bookmarks page if Explore Redirect is enabled
+2. WHEN the Explore Redirect toggle is enabled THEN the system SHALL apply the same friction mechanisms as Home Redirect when attempting to disable
+3. WHEN a user attempts to disable Explore Redirect THEN the system SHALL present the same confirmation dialog, snooze options, and countdown as Home Redirect
+4. WHEN both Home Redirect and Explore Redirect are enabled THEN the system SHALL handle them independently with separate snooze timers if needed
+5. WHEN the Explore Redirect feature is displayed THEN the system SHALL use the same visual styling as other focus features
+
+### Requirement 9
+
+**User Story:** As a user, I want improved interaction design in the settings interface, so that the extension feels more polished and intuitive to use.
+
+#### Acceptance Criteria
+
+1. WHEN I hover over setting options THEN the system SHALL NOT cause visual movement or shifting of elements
+2. WHEN I click anywhere on a setting option element THEN the system SHALL toggle that setting (not just when clicking the toggle switch)
+3. Use normal colors instead of bright yellow for focus feature settings in main popup
+4. WHEN the snooze dialog shows the "Keep Enabled" button THEN the system SHALL style it with green color to encourage positive action
+5. WHEN hover states are applied THEN the system SHALL maintain stable positioning and smooth transitions
+6. Add the extesion's icon on the left of H1 in popup
