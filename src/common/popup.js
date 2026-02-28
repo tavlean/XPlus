@@ -1,800 +1,1192 @@
 (function () {
-    const q = (sel) => document.querySelector(sel);
-    const $posts = q("#posts");
-    const $notifs = q("#notifications");
-    const $homeRedirect = q("#homeRedirect");
-    const $exploreRedirect = q("#exploreRedirect");
-    const defaults = {
+    const DEFAULTS = {
         posts: true,
         notifications: true,
+        notificationFilters: {
+            mentions: true,
+            replies: true,
+            likes: true,
+            retweets: true,
+        },
         homeRedirect: false,
         exploreRedirect: false,
-        // Friction data fields for home redirect
+        messagesRedirect: false,
+        autoFollowingTab: false,
+        hideForYouTab: false,
+        hideTrendingSidebar: false,
+        hideSuggestions: false,
+        threadReader: true,
+        quickBookmark: false,
+        exploreRedirectAllowSearch: true,
+        redirectTargets: {
+            home: "bookmarks",
+            explore: "bookmarks",
+            messages: "bookmarks",
+        },
+        customRedirectTargets: {
+            home: "",
+            explore: "",
+            messages: "",
+        },
+        mutedWords: [],
+        dailyLimitMinutes: 0,
         snoozeEndTime: null,
         disableAttempts: 0,
-        lastAttemptDate: null,
-        // Friction data fields for explore redirect
         exploreSnoozeEndTime: null,
         exploreDisableAttempts: 0,
+        messagesSnoozeEndTime: null,
+        messagesDisableAttempts: 0,
+        lastAttemptDate: null,
+        scheduleEnabled: false,
+        schedulePaused: false,
+        scheduleStart: "09:00",
+        scheduleEnd: "17:00",
+        scheduleDays: [1, 2, 3, 4, 5],
+        scheduleFeatures: {
+            homeRedirect: true,
+            exploreRedirect: true,
+            messagesRedirect: true,
+            hideTrendingSidebar: true,
+            hideSuggestions: true,
+            hideForYouTab: true,
+            autoFollowingTab: false,
+        },
+        scheduleApplied: false,
+        scheduleLastManualState: {},
+        scheduleActiveUntil: null,
     };
 
-    // Helper functions for safe storage operations
-    function safeStorageGet(keys, callback) {
-        try {
-            chrome.storage.sync.get(keys || defaults, (items) => {
-                // Ensure backward compatibility by merging with defaults
-                const mergedItems = { ...defaults, ...items };
-                callback(mergedItems);
-            });
-        } catch (e) {
-            console.warn("Storage get failed, using defaults:", e);
-            callback(defaults);
-        }
+    const REDIRECT_FEATURE_CONFIG = {
+        home: {
+            toggleKey: "homeRedirect",
+            snoozeKey: "snoozeEndTime",
+            title: "Home Redirect",
+            noun: "home redirect",
+            snoozeStatusEl: "snoozeStatus",
+            snoozeTimeEl: "snoozeTime",
+        },
+        explore: {
+            toggleKey: "exploreRedirect",
+            snoozeKey: "exploreSnoozeEndTime",
+            title: "Explore Redirect",
+            noun: "explore redirect",
+            snoozeStatusEl: "exploreSnoozeStatus",
+            snoozeTimeEl: "exploreSnoozeTime",
+        },
+        messages: {
+            toggleKey: "messagesRedirect",
+            snoozeKey: "messagesSnoozeEndTime",
+            title: "DM Redirect",
+            noun: "dm redirect",
+            snoozeStatusEl: "messagesSnoozeStatus",
+            snoozeTimeEl: "messagesSnoozeTime",
+        },
+    };
+
+    const state = {
+        settings: cloneDefaults(),
+        suppressEvents: false,
+        saveDebounceId: null,
+        usageTimerId: null,
+        snoozeTimerId: null,
+        toastTimerId: null,
+        refs: null,
+        dialogRefs: null,
+    };
+
+    function cloneDefaults() {
+        return {
+            ...DEFAULTS,
+            notificationFilters: { ...DEFAULTS.notificationFilters },
+            redirectTargets: { ...DEFAULTS.redirectTargets },
+            customRedirectTargets: { ...DEFAULTS.customRedirectTargets },
+            mutedWords: [...DEFAULTS.mutedWords],
+            scheduleDays: [...DEFAULTS.scheduleDays],
+            scheduleFeatures: { ...DEFAULTS.scheduleFeatures },
+            scheduleLastManualState: { ...DEFAULTS.scheduleLastManualState },
+        };
     }
 
-    function safeStorageSet(items, callback) {
-        try {
-            chrome.storage.sync.set(items, () => {
-                if (callback) callback();
-            });
-        } catch (e) {
-            console.warn("Storage set failed:", e);
-            if (callback) callback();
-        }
+    function mergeSettings(items) {
+        const merged = cloneDefaults();
+        const source = items || {};
+
+        Object.keys(merged).forEach((key) => {
+            if (
+                key !== "notificationFilters" &&
+                key !== "redirectTargets" &&
+                key !== "customRedirectTargets" &&
+                key !== "scheduleDays" &&
+                key !== "scheduleFeatures" &&
+                key !== "mutedWords" &&
+                key !== "scheduleLastManualState"
+            ) {
+                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                    merged[key] = source[key];
+                }
+            }
+        });
+
+        merged.notificationFilters = {
+            ...DEFAULTS.notificationFilters,
+            ...(source.notificationFilters || {}),
+        };
+
+        merged.redirectTargets = {
+            ...DEFAULTS.redirectTargets,
+            ...(source.redirectTargets || {}),
+        };
+
+        merged.customRedirectTargets = {
+            ...DEFAULTS.customRedirectTargets,
+            ...(source.customRedirectTargets || {}),
+        };
+
+        merged.scheduleFeatures = {
+            ...DEFAULTS.scheduleFeatures,
+            ...(source.scheduleFeatures || {}),
+        };
+
+        merged.scheduleDays = Array.isArray(source.scheduleDays)
+            ? source.scheduleDays.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+            : [...DEFAULTS.scheduleDays];
+
+        merged.mutedWords = normalizeMutedWords(source.mutedWords || DEFAULTS.mutedWords);
+
+        merged.scheduleLastManualState =
+            source.scheduleLastManualState && typeof source.scheduleLastManualState === "object"
+                ? source.scheduleLastManualState
+                : {};
+
+        return merged;
     }
 
-    // Helper function to get friction-specific data for a feature type
-    function getFrictionData(featureType, callback) {
-        // If no featureType provided, default to 'home' for backward compatibility
-        if (typeof featureType === "function") {
-            callback = featureType;
-            featureType = "home";
+    function normalizeMutedWords(words) {
+        if (Array.isArray(words)) {
+            return words
+                .map((item) => String(item || "").trim())
+                .filter(Boolean)
+                .slice(0, 150);
         }
 
-        const keys = ["lastAttemptDate"];
-
-        if (featureType === "home") {
-            keys.push("snoozeEndTime", "disableAttempts");
-        } else if (featureType === "explore") {
-            keys.push("exploreSnoozeEndTime", "exploreDisableAttempts");
+        if (typeof words === "string") {
+            return words
+                .split(/[\n,]/)
+                .map((item) => item.trim())
+                .filter(Boolean)
+                .slice(0, 150);
         }
 
-        safeStorageGet(keys, (items) => {
-            if (featureType === "home") {
-                callback({
-                    snoozeEndTime: items.snoozeEndTime,
-                    disableAttempts: items.disableAttempts || 0,
-                    lastAttemptDate: items.lastAttemptDate,
+        return [];
+    }
+
+    function parseMutedWordsInput(rawValue) {
+        return normalizeMutedWords(rawValue || "");
+    }
+
+    function syncGet(query) {
+        return new Promise((resolve) => {
+            try {
+                chrome.storage.sync.get(query, (result) => {
+                    resolve(result || {});
                 });
-            } else if (featureType === "explore") {
-                callback({
-                    snoozeEndTime: items.exploreSnoozeEndTime,
-                    disableAttempts: items.exploreDisableAttempts || 0,
-                    lastAttemptDate: items.lastAttemptDate,
+            } catch (error) {
+                resolve({});
+            }
+        });
+    }
+
+    function syncSet(items) {
+        return new Promise((resolve) => {
+            try {
+                chrome.storage.sync.set(items, () => {
+                    resolve();
                 });
+            } catch (error) {
+                resolve();
             }
         });
     }
 
-    // Helper function to update friction data for a feature type
-    function updateFrictionData(featureType, frictionData, callback) {
-        // Handle backward compatibility - if first param is object, treat as old API
-        if (typeof featureType === "object") {
-            callback = frictionData;
-            frictionData = featureType;
-            featureType = "home";
-        }
-
-        const updateData = {};
-
-        if (featureType === "home") {
-            if (frictionData.snoozeEndTime !== undefined) {
-                updateData.snoozeEndTime = frictionData.snoozeEndTime;
-            }
-            if (frictionData.disableAttempts !== undefined) {
-                updateData.disableAttempts = frictionData.disableAttempts;
-            }
-        } else if (featureType === "explore") {
-            if (frictionData.snoozeEndTime !== undefined) {
-                updateData.exploreSnoozeEndTime = frictionData.snoozeEndTime;
-            }
-            if (frictionData.disableAttempts !== undefined) {
-                updateData.exploreDisableAttempts = frictionData.disableAttempts;
-            }
-        }
-
-        if (frictionData.lastAttemptDate !== undefined) {
-            updateData.lastAttemptDate = frictionData.lastAttemptDate;
-        }
-
-        safeStorageSet(updateData, callback);
-    }
-
-    // Confirmation dialog functions
-    function showConfirmDialog(featureType, message, onConfirm, onCancel) {
-        // Handle backward compatibility - if first param is string message, shift params
-        if (typeof featureType === "string" && typeof message === "function") {
-            onCancel = onConfirm;
-            onConfirm = message;
-            message = featureType;
-            featureType = "home";
-        }
-
-        const dialog = q("#confirmDialog");
-        const titleEl = q("#dialogTitle");
-        const messageEl = q(".dialog-message");
-        const confirmBtn = q("#confirmProceed");
-        const cancelBtn = q("#confirmCancel");
-
-        // Set feature-specific title
-        if (featureType === "home") {
-            titleEl.textContent = "Disable Home Redirect?";
-        } else if (featureType === "explore") {
-            titleEl.textContent = "Disable Explore Redirect?";
-        }
-
-        // Set feature-specific message if not provided
-        if (!message) {
-            if (featureType === "home") {
-                message =
-                    "The Home Redirect feature helps maintain your focus by redirecting you to your bookmarks instead of distracting social feeds. Are you sure you want to disable this productivity feature?";
-            } else if (featureType === "explore") {
-                message =
-                    "The Explore Redirect feature helps maintain your focus by redirecting you away from trending content and discovery feeds. Are you sure you want to disable this productivity feature?";
-            }
-        }
-
-        // Set the message
-        if (message) {
-            messageEl.textContent = message;
-        }
-
-        // Show the dialog
-        dialog.style.display = "flex";
-
-        // Handle confirm button
-        const handleConfirm = () => {
-            dialog.style.display = "none";
-            confirmBtn.removeEventListener("click", handleConfirm);
-            cancelBtn.removeEventListener("click", handleCancel);
-            if (onConfirm) onConfirm();
-        };
-
-        // Handle cancel button
-        const handleCancel = () => {
-            dialog.style.display = "none";
-            confirmBtn.removeEventListener("click", handleConfirm);
-            cancelBtn.removeEventListener("click", handleCancel);
-            if (onCancel) onCancel();
-        };
-
-        // Add event listeners
-        confirmBtn.addEventListener("click", handleConfirm);
-        cancelBtn.addEventListener("click", handleCancel);
-
-        // Close dialog when clicking outside
-        dialog.addEventListener("click", (e) => {
-            if (e.target === dialog) {
-                handleCancel();
+    function localGet(query) {
+        return new Promise((resolve) => {
+            try {
+                chrome.storage.local.get(query, (result) => {
+                    resolve(result || {});
+                });
+            } catch (error) {
+                resolve({});
             }
         });
     }
 
-    // Snooze options dialog functions
-    function showSnoozeOptions(featureType, onSnoozeSelect, onPermanentDisable, onCancel) {
-        // Handle backward compatibility - if first param is function, shift params
-        if (typeof featureType === "function") {
-            onCancel = onPermanentDisable;
-            onPermanentDisable = onSnoozeSelect;
-            onSnoozeSelect = featureType;
-            featureType = "home";
-        }
-
-        const dialog = q("#snoozeDialog");
-        const snoozeOptions = dialog.querySelectorAll(".snooze-option");
-        const permanentBtn = q("#permanentDisable");
-        const cancelBtn = q("#snoozeCancel");
-
-        // Handle snooze option selection
-        const handleSnoozeSelect = (e) => {
-            const duration = e.currentTarget.getAttribute("data-duration");
-            dialog.style.display = "none";
-            removeEventListeners();
-            if (onSnoozeSelect) onSnoozeSelect(duration);
-        };
-
-        // Handle permanent disable
-        const handlePermanentDisable = () => {
-            dialog.style.display = "none";
-            removeEventListeners();
-            if (onPermanentDisable) onPermanentDisable();
-        };
-
-        // Handle cancel
-        const handleCancel = () => {
-            dialog.style.display = "none";
-            removeEventListeners();
-            if (onCancel) onCancel();
-        };
-
-        // Remove all event listeners
-        function removeEventListeners() {
-            snoozeOptions.forEach((option) => {
-                option.removeEventListener("click", handleSnoozeSelect);
-            });
-            permanentBtn.removeEventListener("click", handlePermanentDisable);
-            cancelBtn.removeEventListener("click", handleCancel);
-        }
-
-        // Show the dialog
-        dialog.style.display = "flex";
-
-        // Add event listeners
-        snoozeOptions.forEach((option) => {
-            option.addEventListener("click", handleSnoozeSelect);
-        });
-        permanentBtn.addEventListener("click", handlePermanentDisable);
-        cancelBtn.addEventListener("click", handleCancel);
-
-        // Close dialog when clicking outside
-        dialog.addEventListener("click", (e) => {
-            if (e.target === dialog) {
-                handleCancel();
+    function sendRuntimeMessage(message) {
+        return new Promise((resolve) => {
+            try {
+                chrome.runtime.sendMessage(message, (response) => {
+                    if (chrome.runtime.lastError) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve(response || null);
+                });
+            } catch (error) {
+                resolve(null);
             }
         });
     }
 
-    // Countdown dialog functions
-    function showCountdownDialog(seconds, onComplete, onCancel) {
-        const dialog = q("#countdownDialog");
-        const countdownNumber = q("#countdownNumber");
-        const cancelBtn = q("#countdownCancel");
+    function q(selector) {
+        return document.querySelector(selector);
+    }
 
-        let currentSeconds = seconds;
-        let countdownInterval;
-
-        // Update countdown display
-        function updateCountdown() {
-            countdownNumber.textContent = currentSeconds;
-
-            if (currentSeconds <= 0) {
-                clearInterval(countdownInterval);
-                dialog.style.display = "none";
-                cancelBtn.removeEventListener("click", handleCancel);
-                if (onComplete) onComplete();
-                return;
-            }
-
-            currentSeconds--;
-        }
-
-        // Handle cancel button
-        const handleCancel = () => {
-            clearInterval(countdownInterval);
-            dialog.style.display = "none";
-            cancelBtn.removeEventListener("click", handleCancel);
-            if (onCancel) onCancel();
+    function getRefs() {
+        return {
+            posts: q("#posts"),
+            notifications: q("#notifications"),
+            homeRedirect: q("#homeRedirect"),
+            exploreRedirect: q("#exploreRedirect"),
+            messagesRedirect: q("#messagesRedirect"),
+            autoFollowingTab: q("#autoFollowingTab"),
+            hideForYouTab: q("#hideForYouTab"),
+            hideTrendingSidebar: q("#hideTrendingSidebar"),
+            hideSuggestions: q("#hideSuggestions"),
+            threadReader: q("#threadReader"),
+            quickBookmark: q("#quickBookmark"),
+            exploreRedirectAllowSearch: q("#exploreRedirectAllowSearch"),
+            notificationMentions: q("#notificationMentions"),
+            notificationReplies: q("#notificationReplies"),
+            notificationLikes: q("#notificationLikes"),
+            notificationRetweets: q("#notificationRetweets"),
+            homeRedirectTarget: q("#homeRedirectTarget"),
+            exploreRedirectTarget: q("#exploreRedirectTarget"),
+            messagesRedirectTarget: q("#messagesRedirectTarget"),
+            homeRedirectCustom: q("#homeRedirectCustom"),
+            exploreRedirectCustom: q("#exploreRedirectCustom"),
+            messagesRedirectCustom: q("#messagesRedirectCustom"),
+            mutedWords: q("#mutedWords"),
+            dailyLimitMinutes: q("#dailyLimitMinutes"),
+            notificationFilters: q("#notificationFilters"),
+            todayUsage: q("#todayUsage"),
+            weeklyChart: q("#weeklyChart"),
+            usageFootnote: q("#usageFootnote"),
+            schedulePill: q("#schedulePill"),
+            scheduleEnabled: q("#scheduleEnabled"),
+            schedulePauseToggle: q("#schedulePauseToggle"),
+            scheduleStatusText: q("#scheduleStatusText"),
+            scheduleControls: q("#scheduleControls"),
+            scheduleStart: q("#scheduleStart"),
+            scheduleEnd: q("#scheduleEnd"),
+            scheduleDay0: q("#scheduleDay0"),
+            scheduleDay1: q("#scheduleDay1"),
+            scheduleDay2: q("#scheduleDay2"),
+            scheduleDay3: q("#scheduleDay3"),
+            scheduleDay4: q("#scheduleDay4"),
+            scheduleDay5: q("#scheduleDay5"),
+            scheduleDay6: q("#scheduleDay6"),
+            scheduleFeatureHomeRedirect: q("#scheduleFeatureHomeRedirect"),
+            scheduleFeatureExploreRedirect: q("#scheduleFeatureExploreRedirect"),
+            scheduleFeatureMessagesRedirect: q("#scheduleFeatureMessagesRedirect"),
+            scheduleFeatureHideTrendingSidebar: q("#scheduleFeatureHideTrendingSidebar"),
+            scheduleFeatureHideSuggestions: q("#scheduleFeatureHideSuggestions"),
+            scheduleFeatureHideForYouTab: q("#scheduleFeatureHideForYouTab"),
+            scheduleFeatureAutoFollowingTab: q("#scheduleFeatureAutoFollowingTab"),
+            toast: q("#toast"),
         };
-
-        // Show the dialog
-        dialog.style.display = "flex";
-
-        // Set initial countdown number
-        countdownNumber.textContent = currentSeconds;
-
-        // Start countdown
-        countdownInterval = setInterval(updateCountdown, 1000);
-
-        // Add cancel button listener
-        cancelBtn.addEventListener("click", handleCancel);
-
-        // Close dialog when clicking outside (cancel countdown)
-        dialog.addEventListener("click", (e) => {
-            if (e.target === dialog) {
-                handleCancel();
-            }
-        });
     }
 
-    // Helper function to reset daily attempt counter if needed for a feature type
-    function resetDailyAttemptsIfNeeded(featureType, callback) {
-        // Handle backward compatibility - if first param is function, treat as old API
-        if (typeof featureType === "function") {
-            callback = featureType;
-            featureType = "home";
+    function getDialogRefs() {
+        if (!state.dialogRefs) {
+            state.dialogRefs = {
+                confirmDialog: q("#confirmDialog"),
+                dialogTitle: q("#dialogTitle"),
+                dialogMessage: q("#dialogMessage"),
+                confirmProceed: q("#confirmProceed"),
+                confirmCancel: q("#confirmCancel"),
+                snoozeDialog: q("#snoozeDialog"),
+                snoozeTitle: q("#snoozeTitle"),
+                snoozeCancel: q("#snoozeCancel"),
+                permanentDisable: q("#permanentDisable"),
+                snoozeOptions: Array.from(document.querySelectorAll(".snooze-option")),
+                countdownDialog: q("#countdownDialog"),
+                countdownTitle: q("#countdownTitle"),
+                countdownNumber: q("#countdownNumber"),
+                countdownMessage: q("#countdownMessage"),
+                countdownCancel: q("#countdownCancel"),
+            };
+        }
+        return state.dialogRefs;
+    }
+
+    function showToast(message) {
+        const { toast } = state.refs;
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.style.display = "block";
+
+        if (state.toastTimerId) {
+            clearTimeout(state.toastTimerId);
         }
 
-        getFrictionData(featureType, (frictionData) => {
-            const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        state.toastTimerId = setTimeout(() => {
+            toast.style.display = "none";
+        }, 2400);
+    }
 
-            if (frictionData.lastAttemptDate !== today) {
-                updateFrictionData(
-                    featureType,
-                    {
-                        disableAttempts: 0,
-                        lastAttemptDate: today,
-                    },
-                    callback
-                );
-            } else {
-                if (callback) callback();
+    function formatDuration(seconds) {
+        const clamped = Math.max(0, Math.floor(seconds || 0));
+        const hours = Math.floor(clamped / 3600);
+        const minutes = Math.floor((clamped % 3600) / 60);
+
+        if (hours > 0 && minutes > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        if (hours > 0) {
+            return `${hours}h`;
+        }
+
+        return `${minutes}m`;
+    }
+
+    function formatRemainingTime(milliseconds) {
+        const totalMinutes = Math.max(0, Math.floor(milliseconds / 60000));
+        const days = Math.floor(totalMinutes / (60 * 24));
+        const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+        const minutes = totalMinutes % 60;
+
+        if (days > 0) {
+            if (hours > 0) {
+                return `${days}d ${hours}h`;
             }
+            return `${days}d`;
+        }
+
+        if (hours > 0) {
+            if (minutes > 0) {
+                return `${hours}h ${minutes}m`;
+            }
+            return `${hours}h`;
+        }
+
+        return `${Math.max(1, minutes)}m`;
+    }
+
+    function getLocalDayKey(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObj.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatClockFromTimestamp(value) {
+        if (!value) return "";
+        const timestamp = typeof value === "number" ? value : Number(value);
+        if (!Number.isFinite(timestamp)) return "";
+        return new Date(timestamp).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
         });
     }
 
-    // Helper function to calculate snooze end time
     function calculateSnoozeEndTime(duration) {
         const now = new Date();
 
         if (duration === "tomorrow") {
-            // Set to tomorrow at 9 AM
             const tomorrow = new Date(now);
             tomorrow.setDate(tomorrow.getDate() + 1);
             tomorrow.setHours(9, 0, 0, 0);
             return tomorrow.getTime();
-        } else {
-            // Duration is in minutes
-            const minutes = parseInt(duration, 10);
-            return now.getTime() + minutes * 60 * 1000;
-        }
-    }
-
-    // Helper function to calculate countdown duration based on snooze time
-    function getCountdownDuration(snoozeDuration) {
-        if (snoozeDuration === "15") return 15; // 15 seconds for 15 minutes
-        if (snoozeDuration === "60") return 60; // 60 seconds for 1 hour
-        if (snoozeDuration === "240") return 240; // 240 seconds (4 minutes) for 4 hours
-        if (snoozeDuration === "tomorrow") return 300; // 300 seconds (5 minutes) for tomorrow
-        return 15; // Default fallback
-    }
-
-    // Helper function to get snooze duration display text
-    function getSnoozeDurationText(duration) {
-        if (duration === "15") return "15 minutes";
-        if (duration === "60") return "1 hour";
-        if (duration === "240") return "4 hours";
-        if (duration === "tomorrow") return "until tomorrow";
-        return duration;
-    }
-
-    // Helper function to handle snooze selection with countdown
-    function handleSnoozeSelection(featureType, duration) {
-        // Handle backward compatibility - if first param is duration string, shift params
-        if (typeof featureType === "string" && !duration) {
-            duration = featureType;
-            featureType = "home";
         }
 
-        const countdownSeconds = getCountdownDuration(duration);
-        const durationText = getSnoozeDurationText(duration);
+        const minutes = Number.parseInt(duration, 10);
+        if (!Number.isFinite(minutes)) {
+            return now.getTime() + 15 * 60 * 1000;
+        }
 
-        // Update countdown dialog title and message for snooze
-        const countdownDialog = q("#countdownDialog");
-        const dialogTitle = countdownDialog.querySelector(".dialog-title");
-        const countdownMessage = countdownDialog.querySelector(".countdown-message");
-
-        dialogTitle.textContent = `Snoozing for ${durationText}...`;
-        countdownMessage.textContent = `Take a moment to reconsider. This will disable your focus feature for ${durationText}.`;
-
-        // Show countdown before applying snooze
-        showCountdownDialog(
-            countdownSeconds,
-            () => {
-                // Countdown completed - apply the snooze
-                const snoozeEndTime = calculateSnoozeEndTime(duration);
-
-                // Store snooze data and disable the feature
-                updateFrictionData(featureType, { snoozeEndTime }, () => {
-                    // Disable the appropriate feature
-                    if (featureType === "home") {
-                        $homeRedirect.checked = false;
-                        updateSnoozeStatusIndicator();
-
-                        // Set up alarm for home snooze expiration
-                        if (chrome.alarms) {
-                            chrome.alarms.clear("homeSnoozeExpired", () => {
-                                chrome.alarms.create("homeSnoozeExpired", { when: snoozeEndTime });
-                            });
-                        }
-                    } else if (featureType === "explore") {
-                        if ($exploreRedirect) {
-                            $exploreRedirect.checked = false;
-                        }
-                        updateExploreSnoozeStatusIndicator();
-
-                        // Set up alarm for explore snooze expiration
-                        if (chrome.alarms) {
-                            chrome.alarms.clear("exploreSnoozeExpired", () => {
-                                chrome.alarms.create("exploreSnoozeExpired", {
-                                    when: snoozeEndTime,
-                                });
-                            });
-                        }
-                    }
-
-                    save();
-                });
-
-                // Reset dialog title and message for future permanent disable use
-                dialogTitle.textContent = "Disabling in...";
-                countdownMessage.textContent =
-                    "Take a deep breath and reconsider. This will disable your focus feature.";
-            },
-            () => {
-                // User cancelled countdown - keep it enabled
-                if (featureType === "home") {
-                    $homeRedirect.checked = true;
-                } else if (featureType === "explore") {
-                    if ($exploreRedirect) {
-                        $exploreRedirect.checked = true;
-                    }
-                }
-
-                // Reset dialog title and message
-                dialogTitle.textContent = "Disabling in...";
-                countdownMessage.textContent =
-                    "Take a deep breath and reconsider. This will disable your focus feature.";
-            }
-        );
+        return now.getTime() + minutes * 60 * 1000;
     }
 
-    function load() {
-        safeStorageGet(null, (items) => {
-            $posts.checked = !!items.posts;
-            $notifs.checked = !!items.notifications;
-            $homeRedirect.checked = !!items.homeRedirect;
-
-            // Handle exploreRedirect if element exists
-            if ($exploreRedirect) {
-                $exploreRedirect.checked = !!items.exploreRedirect;
-            }
-
-            // Check if there's an active home snooze that has expired
-            if (items.snoozeEndTime && items.snoozeEndTime <= Date.now()) {
-                // Home snooze has expired, clear it and re-enable the feature
-                updateFrictionData("home", { snoozeEndTime: null }, () => {
-                    if (!items.homeRedirect) {
-                        // Re-enable the feature if it was disabled due to snooze
-                        $homeRedirect.checked = true;
-                        save();
-                    }
-                    // Update the snooze indicator after clearing expired snooze
-                    updateSnoozeStatusIndicator();
-                });
-            } else {
-                // Update the snooze indicator on load
-                updateSnoozeStatusIndicator();
-            }
-
-            // Check if there's an active explore snooze that has expired
-            if (items.exploreSnoozeEndTime && items.exploreSnoozeEndTime <= Date.now()) {
-                // Explore snooze has expired, clear it and re-enable the feature
-                updateFrictionData("explore", { snoozeEndTime: null }, () => {
-                    if (!items.exploreRedirect && $exploreRedirect) {
-                        // Re-enable the feature if it was disabled due to snooze
-                        $exploreRedirect.checked = true;
-                        save();
-                    }
-                    // Update the explore snooze indicator after clearing expired snooze
-                    updateExploreSnoozeStatusIndicator();
-                });
-            } else {
-                // Update the explore snooze indicator on load
-                updateExploreSnoozeStatusIndicator();
-            }
-        });
-    }
-
-    function save() {
-        const saveData = {
-            posts: $posts.checked,
-            notifications: $notifs.checked,
-            homeRedirect: $homeRedirect.checked,
+    function getCountdownDuration(duration) {
+        const map = {
+            "15": 15,
+            "60": 20,
+            "240": 30,
+            tomorrow: 30,
         };
+        const value = map[duration] || 15;
+        return Math.min(30, Math.max(5, value));
+    }
 
-        // Add exploreRedirect if element exists
-        if ($exploreRedirect) {
-            saveData.exploreRedirect = $exploreRedirect.checked;
+    function getSnoozeDurationText(duration) {
+        const labels = {
+            "15": "15 minutes",
+            "60": "1 hour",
+            "240": "4 hours",
+            tomorrow: "until tomorrow",
+        };
+        return labels[duration] || "a short break";
+    }
+
+    function isValidHttpUrl(value) {
+        if (!value) return true;
+        try {
+            const parsed = new URL(value);
+            return parsed.protocol === "https:" || parsed.protocol === "http:";
+        } catch (error) {
+            return false;
         }
+    }
 
-        safeStorageSet(saveData, () => {
-            // Update DNR rules when redirect settings change
-            if (chrome.declarativeNetRequest) {
-                const enableRulesets = [];
-                const disableRulesets = [];
+    function updateCustomInputVisibility() {
+        const { homeRedirectTarget, exploreRedirectTarget, messagesRedirectTarget } = state.refs;
+        const featureKeys = ["home", "explore", "messages"];
+        featureKeys.forEach((feature) => {
+            const targetSelect =
+                feature === "home"
+                    ? homeRedirectTarget
+                    : feature === "explore"
+                      ? exploreRedirectTarget
+                      : messagesRedirectTarget;
 
-                // Handle home redirect rules
-                if ($homeRedirect.checked) {
-                    enableRulesets.push("ruleset_home_redirect");
-                } else {
-                    disableRulesets.push("ruleset_home_redirect");
-                }
+            const customInput =
+                feature === "home"
+                    ? state.refs.homeRedirectCustom
+                    : feature === "explore"
+                      ? state.refs.exploreRedirectCustom
+                      : state.refs.messagesRedirectCustom;
 
-                // Handle explore redirect rules if element exists
-                if ($exploreRedirect) {
-                    if ($exploreRedirect.checked) {
-                        enableRulesets.push("ruleset_explore_redirect");
-                    } else {
-                        disableRulesets.push("ruleset_explore_redirect");
-                    }
-                }
-
-                // Apply rule changes in a single call for better performance
-                const updateOptions = {};
-                if (enableRulesets.length > 0) {
-                    updateOptions.enableRulesetIds = enableRulesets;
-                }
-                if (disableRulesets.length > 0) {
-                    updateOptions.disableRulesetIds = disableRulesets;
-                }
-
-                if (Object.keys(updateOptions).length > 0) {
-                    chrome.declarativeNetRequest.updateEnabledRulesets(updateOptions);
-                }
-            }
+            if (!targetSelect || !customInput) return;
+            customInput.style.display = targetSelect.value === "custom" ? "block" : "none";
         });
     }
 
-    // Unified function to handle redirect toggle with friction for both home and explore
-    function handleRedirectToggle(featureType, toggleElement, e) {
-        // If user is enabling the feature, clear any active snooze
-        if (e.target.checked) {
-            getFrictionData(featureType, (frictionData) => {
-                if (frictionData.snoozeEndTime) {
-                    // Clear the snooze timer and alarm
-                    updateFrictionData(featureType, { snoozeEndTime: null }, () => {
-                        if (chrome.alarms) {
-                            const alarmName =
-                                featureType === "home"
-                                    ? "homeSnoozeExpired"
-                                    : "exploreSnoozeExpired";
-                            chrome.alarms.clear(alarmName);
+    function updateCustomInputValidity() {
+        [
+            state.refs.homeRedirectCustom,
+            state.refs.exploreRedirectCustom,
+            state.refs.messagesRedirectCustom,
+        ].forEach((inputEl) => {
+            if (!inputEl) return;
+            const isValid = isValidHttpUrl(inputEl.value.trim());
+            inputEl.classList.toggle("invalid", !isValid);
+        });
+    }
+
+    function updateNotificationFilterState() {
+        const { notifications, notificationFilters } = state.refs;
+        if (!notifications || !notificationFilters) return;
+
+        const enabled = !!notifications.checked;
+        notificationFilters.classList.toggle("disabled", !enabled);
+    }
+
+    function updateScheduleStateText() {
+        const { scheduleStatusText, schedulePauseToggle } = state.refs;
+        if (!scheduleStatusText || !schedulePauseToggle) return;
+
+        if (!state.settings.scheduleEnabled) {
+            scheduleStatusText.textContent = "Off";
+        } else if (state.settings.schedulePaused) {
+            scheduleStatusText.textContent = "Paused";
+        } else if (state.settings.scheduleActiveUntil) {
+            const label = formatClockFromTimestamp(state.settings.scheduleActiveUntil);
+            scheduleStatusText.textContent = label ? `Work mode until ${label}` : "Work mode active";
+        } else {
+            scheduleStatusText.textContent = "Waiting for next block";
+        }
+
+        schedulePauseToggle.textContent = state.settings.schedulePaused
+            ? "Resume schedule"
+            : "Pause schedule";
+    }
+
+    function updateScheduleControlsEnabledState() {
+        const { scheduleEnabled, scheduleControls } = state.refs;
+        if (!scheduleEnabled || !scheduleControls) return;
+
+        const enabled = !!scheduleEnabled.checked;
+        const controls = scheduleControls.querySelectorAll("input, button");
+        controls.forEach((control) => {
+            control.disabled = !enabled;
+        });
+    }
+
+    function updateSchedulePill() {
+        const { schedulePill } = state.refs;
+        if (!schedulePill) return;
+
+        if (state.settings.scheduleEnabled && !state.settings.schedulePaused && state.settings.scheduleActiveUntil) {
+            const label = formatClockFromTimestamp(state.settings.scheduleActiveUntil);
+            schedulePill.textContent = label ? `Work mode (until ${label})` : "Work mode active";
+            schedulePill.style.display = "inline-flex";
+        } else {
+            schedulePill.style.display = "none";
+        }
+    }
+
+    function getFeatureSnoozeExpiry(featureKey) {
+        const config = REDIRECT_FEATURE_CONFIG[featureKey];
+        if (!config) return null;
+        return state.settings[config.snoozeKey] || null;
+    }
+
+    function setFeatureSnoozeExpiry(featureKey, timestamp) {
+        const config = REDIRECT_FEATURE_CONFIG[featureKey];
+        if (!config) return;
+        state.settings[config.snoozeKey] = timestamp;
+    }
+
+    function updateSnoozeIndicators() {
+        let shouldPersistAfterExpiryCleanup = false;
+        const now = Date.now();
+
+        Object.keys(REDIRECT_FEATURE_CONFIG).forEach((featureKey) => {
+            const config = REDIRECT_FEATURE_CONFIG[featureKey];
+            const statusEl = q(`#${config.snoozeStatusEl}`);
+            const timeEl = q(`#${config.snoozeTimeEl}`);
+            if (!statusEl || !timeEl) return;
+
+            const expiry = state.settings[config.snoozeKey];
+            const active = Number.isFinite(expiry) && expiry > now;
+
+            if (active) {
+                statusEl.style.display = "block";
+                timeEl.textContent = formatRemainingTime(expiry - now);
+            } else {
+                statusEl.style.display = "none";
+                if (Number.isFinite(expiry) && expiry <= now) {
+                    state.settings[config.snoozeKey] = null;
+                    if (!state.settings[config.toggleKey]) {
+                        state.settings[config.toggleKey] = true;
+                        if (state.refs[config.toggleKey]) {
+                            state.refs[config.toggleKey].checked = true;
                         }
-                        // Update the appropriate snooze indicator after clearing snooze
-                        if (featureType === "home") {
-                            updateSnoozeStatusIndicator();
-                        } else if (featureType === "explore") {
-                            updateExploreSnoozeStatusIndicator();
-                        }
-                        // Save after snooze is fully cleared
-                        save();
-                    });
-                } else {
-                    // No snooze to clear, just update indicator and save
-                    if (featureType === "home") {
-                        updateSnoozeStatusIndicator();
-                    } else if (featureType === "explore") {
-                        updateExploreSnoozeStatusIndicator();
                     }
-                    save();
+                    shouldPersistAfterExpiryCleanup = true;
                 }
+            }
+        });
+
+        if (shouldPersistAfterExpiryCleanup) {
+            queueSave({ scheduleEval: false });
+        }
+    }
+
+    function applySettingsToUi() {
+        const refs = state.refs;
+        const settings = state.settings;
+
+        refs.posts.checked = !!settings.posts;
+        refs.notifications.checked = !!settings.notifications;
+        refs.homeRedirect.checked = !!settings.homeRedirect;
+        refs.exploreRedirect.checked = !!settings.exploreRedirect;
+        refs.messagesRedirect.checked = !!settings.messagesRedirect;
+        refs.autoFollowingTab.checked = !!settings.autoFollowingTab;
+        refs.hideForYouTab.checked = !!settings.hideForYouTab;
+        refs.hideTrendingSidebar.checked = !!settings.hideTrendingSidebar;
+        refs.hideSuggestions.checked = !!settings.hideSuggestions;
+        refs.threadReader.checked = !!settings.threadReader;
+        refs.quickBookmark.checked = !!settings.quickBookmark;
+        refs.exploreRedirectAllowSearch.checked = !!settings.exploreRedirectAllowSearch;
+
+        refs.notificationMentions.checked = !!settings.notificationFilters.mentions;
+        refs.notificationReplies.checked = !!settings.notificationFilters.replies;
+        refs.notificationLikes.checked = !!settings.notificationFilters.likes;
+        refs.notificationRetweets.checked = !!settings.notificationFilters.retweets;
+
+        refs.homeRedirectTarget.value = settings.redirectTargets.home;
+        refs.exploreRedirectTarget.value = settings.redirectTargets.explore;
+        refs.messagesRedirectTarget.value = settings.redirectTargets.messages;
+
+        refs.homeRedirectCustom.value = settings.customRedirectTargets.home || "";
+        refs.exploreRedirectCustom.value = settings.customRedirectTargets.explore || "";
+        refs.messagesRedirectCustom.value = settings.customRedirectTargets.messages || "";
+
+        refs.mutedWords.value = settings.mutedWords.join(", ");
+        refs.dailyLimitMinutes.value = settings.dailyLimitMinutes || 0;
+
+        refs.scheduleEnabled.checked = !!settings.scheduleEnabled;
+        refs.scheduleStart.value = settings.scheduleStart || "09:00";
+        refs.scheduleEnd.value = settings.scheduleEnd || "17:00";
+
+        for (let day = 0; day <= 6; day += 1) {
+            const el = refs[`scheduleDay${day}`];
+            if (el) {
+                el.checked = settings.scheduleDays.includes(day);
+            }
+        }
+
+        refs.scheduleFeatureHomeRedirect.checked = !!settings.scheduleFeatures.homeRedirect;
+        refs.scheduleFeatureExploreRedirect.checked = !!settings.scheduleFeatures.exploreRedirect;
+        refs.scheduleFeatureMessagesRedirect.checked = !!settings.scheduleFeatures.messagesRedirect;
+        refs.scheduleFeatureHideTrendingSidebar.checked = !!settings.scheduleFeatures.hideTrendingSidebar;
+        refs.scheduleFeatureHideSuggestions.checked = !!settings.scheduleFeatures.hideSuggestions;
+        refs.scheduleFeatureHideForYouTab.checked = !!settings.scheduleFeatures.hideForYouTab;
+        refs.scheduleFeatureAutoFollowingTab.checked = !!settings.scheduleFeatures.autoFollowingTab;
+
+        updateCustomInputVisibility();
+        updateCustomInputValidity();
+        updateNotificationFilterState();
+        updateScheduleControlsEnabledState();
+        updateScheduleStateText();
+        updateSchedulePill();
+        updateSnoozeIndicators();
+    }
+
+    function collectScheduleDaysFromUi() {
+        const days = [];
+        for (let day = 0; day <= 6; day += 1) {
+            const input = state.refs[`scheduleDay${day}`];
+            if (input && input.checked) {
+                days.push(day);
+            }
+        }
+
+        if (days.length === 0) {
+            return [...DEFAULTS.scheduleDays];
+        }
+
+        return days;
+    }
+
+    function collectSettingsFromUi() {
+        const refs = state.refs;
+
+        return {
+            ...state.settings,
+            posts: !!refs.posts.checked,
+            notifications: !!refs.notifications.checked,
+            notificationFilters: {
+                mentions: !!refs.notificationMentions.checked,
+                replies: !!refs.notificationReplies.checked,
+                likes: !!refs.notificationLikes.checked,
+                retweets: !!refs.notificationRetweets.checked,
+            },
+            homeRedirect: !!refs.homeRedirect.checked,
+            exploreRedirect: !!refs.exploreRedirect.checked,
+            messagesRedirect: !!refs.messagesRedirect.checked,
+            autoFollowingTab: !!refs.autoFollowingTab.checked,
+            hideForYouTab: !!refs.hideForYouTab.checked,
+            hideTrendingSidebar: !!refs.hideTrendingSidebar.checked,
+            hideSuggestions: !!refs.hideSuggestions.checked,
+            threadReader: !!refs.threadReader.checked,
+            quickBookmark: !!refs.quickBookmark.checked,
+            exploreRedirectAllowSearch: !!refs.exploreRedirectAllowSearch.checked,
+            redirectTargets: {
+                home: refs.homeRedirectTarget.value || "bookmarks",
+                explore: refs.exploreRedirectTarget.value || "bookmarks",
+                messages: refs.messagesRedirectTarget.value || "bookmarks",
+            },
+            customRedirectTargets: {
+                home: refs.homeRedirectCustom.value.trim(),
+                explore: refs.exploreRedirectCustom.value.trim(),
+                messages: refs.messagesRedirectCustom.value.trim(),
+            },
+            mutedWords: parseMutedWordsInput(refs.mutedWords.value),
+            dailyLimitMinutes: Math.max(0, Number.parseInt(refs.dailyLimitMinutes.value || "0", 10) || 0),
+            scheduleEnabled: !!refs.scheduleEnabled.checked,
+            scheduleStart: refs.scheduleStart.value || "09:00",
+            scheduleEnd: refs.scheduleEnd.value || "17:00",
+            scheduleDays: collectScheduleDaysFromUi(),
+            scheduleFeatures: {
+                homeRedirect: !!refs.scheduleFeatureHomeRedirect.checked,
+                exploreRedirect: !!refs.scheduleFeatureExploreRedirect.checked,
+                messagesRedirect: !!refs.scheduleFeatureMessagesRedirect.checked,
+                hideTrendingSidebar: !!refs.scheduleFeatureHideTrendingSidebar.checked,
+                hideSuggestions: !!refs.scheduleFeatureHideSuggestions.checked,
+                hideForYouTab: !!refs.scheduleFeatureHideForYouTab.checked,
+                autoFollowingTab: !!refs.scheduleFeatureAutoFollowingTab.checked,
+            },
+        };
+    }
+
+    function enforceMutualExclusion(changedKey) {
+        const refs = state.refs;
+        let changed = false;
+
+        if (changedKey === "homeRedirect" && refs.homeRedirect.checked && refs.autoFollowingTab.checked) {
+            refs.autoFollowingTab.checked = false;
+            state.settings.autoFollowingTab = false;
+            changed = true;
+            showToast("Auto-Following disabled because Home Redirect is enabled.");
+        }
+
+        if (changedKey === "autoFollowingTab" && refs.autoFollowingTab.checked && refs.homeRedirect.checked) {
+            refs.homeRedirect.checked = false;
+            state.settings.homeRedirect = false;
+            state.settings.snoozeEndTime = null;
+            changed = true;
+            showToast("Home Redirect disabled because Auto-Following is enabled.");
+        }
+
+        return changed;
+    }
+
+    async function persistCurrentUi({ scheduleEval = false } = {}) {
+        if (state.suppressEvents) return;
+
+        updateCustomInputVisibility();
+        updateCustomInputValidity();
+        updateNotificationFilterState();
+
+        const nextSettings = collectSettingsFromUi();
+        state.settings = mergeSettings(nextSettings);
+
+        await syncSet(state.settings);
+
+        updateScheduleControlsEnabledState();
+        updateScheduleStateText();
+        updateSchedulePill();
+        updateSnoozeIndicators();
+
+        if (scheduleEval) {
+            await sendRuntimeMessage({ action: "evaluateSchedule" });
+        }
+    }
+
+    function queueSave(options = {}) {
+        if (state.saveDebounceId) {
+            clearTimeout(state.saveDebounceId);
+        }
+        state.saveDebounceId = setTimeout(() => {
+            persistCurrentUi(options);
+        }, 120);
+    }
+
+    function setupOptionRowClickBehavior() {
+        const optionRows = Array.from(document.querySelectorAll(".option[data-clickable='true']"));
+        optionRows.forEach((row) => {
+            row.addEventListener("click", (event) => {
+                if (event.target.closest(".switch, button, input, select, textarea, a, .day-chip")) {
+                    return;
+                }
+
+                const checkbox = row.querySelector("input[type='checkbox']");
+                if (!checkbox) return;
+
+                const isFocusRedirect = !!row.dataset.focusRedirect;
+                if (isFocusRedirect && checkbox.checked) {
+                    showToast("Click the switch to disable this focus redirect.");
+                    return;
+                }
+
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event("change", { bubbles: true }));
             });
+        });
+    }
+
+    function waitForDialogAction(overlay, bindings) {
+        return new Promise((resolve) => {
+            const cleanupFns = [];
+
+            function done(value) {
+                overlay.style.display = "none";
+                cleanupFns.forEach((fn) => fn());
+                resolve(value);
+            }
+
+            bindings.forEach((binding) => {
+                const { element, eventName, handler } = binding;
+                if (!element) return;
+                const wrapped = (event) => handler(event, done);
+                element.addEventListener(eventName, wrapped);
+                cleanupFns.push(() => element.removeEventListener(eventName, wrapped));
+            });
+
+            const onOverlayClick = (event) => {
+                if (event.target === overlay) {
+                    done(null);
+                }
+            };
+            overlay.addEventListener("click", onOverlayClick);
+            cleanupFns.push(() => overlay.removeEventListener("click", onOverlayClick));
+
+            overlay.style.display = "flex";
+        });
+    }
+
+    async function showDisableConfirmDialog(feature) {
+        const dialogs = getDialogRefs();
+        const config = REDIRECT_FEATURE_CONFIG[feature];
+        if (!config) return false;
+
+        dialogs.dialogTitle.textContent = `Disable ${config.title}?`;
+        dialogs.dialogMessage.textContent = `${config.title} helps reduce distractions. Disable temporarily (snooze) or keep it on?`;
+
+        const result = await waitForDialogAction(dialogs.confirmDialog, [
+            {
+                element: dialogs.confirmProceed,
+                eventName: "click",
+                handler: (_, done) => done(true),
+            },
+            {
+                element: dialogs.confirmCancel,
+                eventName: "click",
+                handler: (_, done) => done(false),
+            },
+        ]);
+
+        return !!result;
+    }
+
+    async function showSnoozeDialog(feature) {
+        const dialogs = getDialogRefs();
+        const config = REDIRECT_FEATURE_CONFIG[feature];
+        if (!config) return { type: "cancel" };
+
+        dialogs.snoozeTitle.textContent = `Disable ${config.title}`;
+
+        const result = await waitForDialogAction(dialogs.snoozeDialog, [
+            ...dialogs.snoozeOptions.map((option) => ({
+                element: option,
+                eventName: "click",
+                handler: (event, done) => {
+                    event.preventDefault();
+                    done({ type: "snooze", duration: option.getAttribute("data-duration") });
+                },
+            })),
+            {
+                element: dialogs.permanentDisable,
+                eventName: "click",
+                handler: (_, done) => done({ type: "permanent" }),
+            },
+            {
+                element: dialogs.snoozeCancel,
+                eventName: "click",
+                handler: (_, done) => done({ type: "cancel" }),
+            },
+        ]);
+
+        return result || { type: "cancel" };
+    }
+
+    async function showCountdownDialog(seconds, titleText, messageText) {
+        const dialogs = getDialogRefs();
+        dialogs.countdownTitle.textContent = titleText;
+        dialogs.countdownMessage.textContent = messageText;
+
+        let currentSeconds = Math.max(1, Math.floor(seconds));
+        dialogs.countdownNumber.textContent = String(currentSeconds);
+
+        return new Promise((resolve) => {
+            let intervalId = null;
+
+            function cleanupAndResolve(value) {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                }
+                dialogs.countdownDialog.style.display = "none";
+                dialogs.countdownCancel.removeEventListener("click", onCancelClick);
+                dialogs.countdownDialog.removeEventListener("click", onOverlayClick);
+                resolve(value);
+            }
+
+            function onCancelClick() {
+                cleanupAndResolve(false);
+            }
+
+            function onOverlayClick(event) {
+                if (event.target === dialogs.countdownDialog) {
+                    cleanupAndResolve(false);
+                }
+            }
+
+            dialogs.countdownCancel.addEventListener("click", onCancelClick);
+            dialogs.countdownDialog.addEventListener("click", onOverlayClick);
+            dialogs.countdownDialog.style.display = "flex";
+
+            intervalId = setInterval(() => {
+                currentSeconds -= 1;
+                dialogs.countdownNumber.textContent = String(Math.max(0, currentSeconds));
+                if (currentSeconds <= 0) {
+                    cleanupAndResolve(true);
+                }
+            }, 1000);
+        });
+    }
+
+    async function handleDisableFlow(feature) {
+        const confirmed = await showDisableConfirmDialog(feature);
+        if (!confirmed) return { applied: false };
+
+        const choice = await showSnoozeDialog(feature);
+        if (!choice || choice.type === "cancel") {
+            return { applied: false };
+        }
+
+        if (choice.type === "snooze") {
+            const durationText = getSnoozeDurationText(choice.duration);
+            const countdownOk = await showCountdownDialog(
+                getCountdownDuration(choice.duration),
+                `Snoozing for ${durationText}...`,
+                `This will disable ${REDIRECT_FEATURE_CONFIG[feature].noun} for ${durationText}.`
+            );
+
+            if (!countdownOk) {
+                return { applied: false };
+            }
+
+            return {
+                applied: true,
+                mode: "snooze",
+                snoozeEndTime: calculateSnoozeEndTime(choice.duration),
+            };
+        }
+
+        const countdownOk = await showCountdownDialog(
+            5,
+            "Disabling in...",
+            `This will disable ${REDIRECT_FEATURE_CONFIG[feature].noun} until you re-enable it.`
+        );
+
+        if (!countdownOk) {
+            return { applied: false };
+        }
+
+        return {
+            applied: true,
+            mode: "permanent",
+            snoozeEndTime: null,
+        };
+    }
+
+    async function handleRedirectToggleChange(featureKey, event) {
+        if (state.suppressEvents) return;
+
+        const config = REDIRECT_FEATURE_CONFIG[featureKey];
+        if (!config) return;
+
+        if (event.target.checked) {
+            setFeatureSnoozeExpiry(featureKey, null);
+            if (featureKey === "home") {
+                enforceMutualExclusion("homeRedirect");
+            }
+            await persistCurrentUi();
             return;
         }
 
-        // If user is trying to disable (unchecking), show confirmation
-        if (!e.target.checked) {
-            // Prevent the toggle from changing immediately
-            e.preventDefault();
-            e.target.checked = true; // Keep it checked while showing confirmation
+        event.target.checked = true;
 
-            showConfirmDialog(
-                featureType,
-                null, // Use default message for the feature type
-                () => {
-                    // User confirmed - show snooze options
-                    showSnoozeOptions(
-                        featureType,
-                        (duration) => {
-                            // User selected snooze option
-                            handleSnoozeSelection(featureType, duration);
-                        },
-                        () => {
-                            // User selected permanent disable - show countdown
-                            const countdownDialog = q("#countdownDialog");
-                            const dialogTitle = countdownDialog.querySelector(".dialog-title");
-                            const countdownMessage =
-                                countdownDialog.querySelector(".countdown-message");
-
-                            // Ensure dialog has correct text for permanent disable
-                            dialogTitle.textContent = "Disabling in...";
-                            countdownMessage.textContent =
-                                "Take a deep breath and reconsider. This will disable your focus feature.";
-
-                            showCountdownDialog(
-                                5, // 5 second countdown for permanent disable
-                                () => {
-                                    // Countdown completed - proceed with permanent disable
-                                    toggleElement.checked = false;
-                                    save();
-                                },
-                                () => {
-                                    // User cancelled countdown - keep it enabled
-                                    toggleElement.checked = true;
-                                }
-                            );
-                        },
-                        () => {
-                            // User cancelled snooze dialog - keep it enabled
-                            toggleElement.checked = true;
-                        }
-                    );
-                },
-                () => {
-                    // User cancelled confirmation - keep it enabled
-                    toggleElement.checked = true;
-                }
-            );
-        } else {
-            // User is enabling - no friction needed
-            save();
+        const result = await handleDisableFlow(featureKey);
+        if (!result.applied) {
+            event.target.checked = true;
+            return;
         }
+
+        event.target.checked = false;
+        setFeatureSnoozeExpiry(featureKey, result.snoozeEndTime);
+        updateSnoozeIndicators();
+
+        await persistCurrentUi({ scheduleEval: false });
     }
 
-    // Handle home redirect toggle with friction (wrapper for backward compatibility)
-    function handleHomeRedirectToggle(e) {
-        handleRedirectToggle("home", $homeRedirect, e);
-    }
-
-    // Handle explore redirect toggle with friction
-    function handleExploreRedirectToggle(e) {
-        if ($exploreRedirect) {
-            handleRedirectToggle("explore", $exploreRedirect, e);
+    function getWeeklyDays() {
+        const days = [];
+        for (let offset = 6; offset >= 0; offset -= 1) {
+            const dateObj = new Date();
+            dateObj.setDate(dateObj.getDate() - offset);
+            days.push(dateObj);
         }
+        return days;
     }
 
-    // Snooze status indicator functions
-    function updateSnoozeStatusIndicator() {
-        const snoozeStatus = q("#snoozeStatus");
-        const snoozeTimeEl = q("#snoozeTime");
+    async function refreshUsageUi() {
+        const refs = state.refs;
+        const localState = await localGet({ screenTimeByDay: {} });
+        const screenTimeByDay = localState.screenTimeByDay || {};
 
-        getFrictionData("home", (frictionData) => {
-            if (frictionData.snoozeEndTime && frictionData.snoozeEndTime > Date.now()) {
-                // Snooze is active - show the indicator
-                const remainingTime = frictionData.snoozeEndTime - Date.now();
-                const timeText = formatRemainingTime(remainingTime);
+        const todayKey = getLocalDayKey(new Date());
+        const todaySeconds = Number(screenTimeByDay[todayKey] || 0);
+        refs.todayUsage.textContent = `Today: ${formatDuration(todaySeconds)}`;
 
-                snoozeTimeEl.textContent = timeText;
-                snoozeStatus.style.display = "block";
-            } else {
-                // No active snooze - hide the indicator
-                snoozeStatus.style.display = "none";
-
-                // If there was a snooze time but it's expired, clear it
-                if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
-                    updateFrictionData("home", { snoozeEndTime: null });
-                }
-            }
+        const weeklyDays = getWeeklyDays();
+        const weeklyData = weeklyDays.map((day) => {
+            const key = getLocalDayKey(day);
+            return {
+                label: day.toLocaleDateString([], { weekday: "short" }).slice(0, 2),
+                seconds: Number(screenTimeByDay[key] || 0),
+            };
         });
-    }
 
-    // Helper function to format remaining time in a user-friendly way
-    function formatRemainingTime(milliseconds) {
-        const totalSeconds = Math.floor(milliseconds / 1000);
-        const totalMinutes = Math.floor(totalSeconds / 60);
-        const totalHours = Math.floor(totalMinutes / 60);
-        const days = Math.floor(totalHours / 24);
+        const maxSeconds = Math.max(...weeklyData.map((item) => item.seconds), 60);
 
-        if (days > 0) {
-            const hours = totalHours % 24;
-            if (hours > 0) {
-                return `${days}d ${hours}h`;
-            }
-            return `${days} day${days > 1 ? "s" : ""}`;
-        } else if (totalHours > 0) {
-            const minutes = totalMinutes % 60;
-            if (minutes > 0) {
-                return `${totalHours}h ${minutes}m`;
-            }
-            return `${totalHours} hour${totalHours > 1 ? "s" : ""}`;
-        } else if (totalMinutes > 0) {
-            return `${totalMinutes} minute${totalMinutes > 1 ? "s" : ""}`;
+        refs.weeklyChart.innerHTML = "";
+        weeklyData.forEach((item) => {
+            const bar = document.createElement("div");
+            bar.className = "usage-bar";
+
+            const fill = document.createElement("div");
+            fill.className = "usage-bar-fill";
+            fill.style.height = `${Math.max(4, Math.round((item.seconds / maxSeconds) * 42))}px`;
+            fill.title = formatDuration(item.seconds);
+
+            const label = document.createElement("div");
+            label.className = "usage-bar-label";
+            label.textContent = item.label;
+
+            bar.appendChild(fill);
+            bar.appendChild(label);
+            refs.weeklyChart.appendChild(bar);
+        });
+
+        const limit = Number.parseInt(state.settings.dailyLimitMinutes || 0, 10) || 0;
+        if (limit > 0) {
+            const usedMinutes = Math.floor(todaySeconds / 60);
+            refs.usageFootnote.textContent = `Limit: ${usedMinutes}/${limit} min`;
         } else {
-            return "less than a minute";
+            refs.usageFootnote.textContent = "Set a daily limit to enable warnings and hard blocking.";
         }
     }
 
-    // Placeholder function for explore snooze status indicator (will be implemented in later task)
-    function updateExploreSnoozeStatusIndicator() {
-        const exploreSnoozeStatus = q("#exploreSnoozeStatus");
-        if (!exploreSnoozeStatus) return; // Element doesn't exist yet
+    function setupStorageListeners() {
+        try {
+            chrome.storage.onChanged.addListener((changes, area) => {
+                if (area === "sync") {
+                    let hasRelevantChanges = false;
+                    const updated = { ...state.settings };
 
-        getFrictionData("explore", (frictionData) => {
-            if (frictionData.snoozeEndTime && frictionData.snoozeEndTime > Date.now()) {
-                // Snooze is active - show the indicator
-                const remainingTime = frictionData.snoozeEndTime - Date.now();
-                const timeText = formatRemainingTime(remainingTime);
+                    Object.keys(changes).forEach((key) => {
+                        updated[key] = changes[key].newValue;
+                        hasRelevantChanges = true;
+                    });
 
-                const exploreSnoozeTimeEl = q("#exploreSnoozeTime");
-                if (exploreSnoozeTimeEl) {
-                    exploreSnoozeTimeEl.textContent = timeText;
-                    exploreSnoozeStatus.style.display = "block";
+                    if (hasRelevantChanges) {
+                        state.settings = mergeSettings(updated);
+                        state.suppressEvents = true;
+                        applySettingsToUi();
+                        state.suppressEvents = false;
+                        refreshUsageUi();
+                    }
                 }
-            } else {
-                // No active snooze - hide the indicator
-                exploreSnoozeStatus.style.display = "none";
 
-                // If there was a snooze time but it's expired, clear it
-                if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
-                    updateFrictionData("explore", { snoozeEndTime: null });
+                if (area === "local") {
+                    if (Object.prototype.hasOwnProperty.call(changes, "screenTimeByDay")) {
+                        refreshUsageUi();
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            // noop
+        }
     }
 
-    // Set up periodic updates for the snooze indicator
-    function startSnoozeIndicatorUpdates() {
-        // Update immediately
-        updateSnoozeStatusIndicator();
-        updateExploreSnoozeStatusIndicator();
+    function bindEvents() {
+        const refs = state.refs;
 
-        // Update every 30 seconds to keep the time current
-        setInterval(() => {
-            updateSnoozeStatusIndicator();
-            updateExploreSnoozeStatusIndicator();
+        refs.posts.addEventListener("change", () => persistCurrentUi());
+        refs.notifications.addEventListener("change", () => {
+            updateNotificationFilterState();
+            persistCurrentUi();
+        });
+
+        refs.notificationMentions.addEventListener("change", () => persistCurrentUi());
+        refs.notificationReplies.addEventListener("change", () => persistCurrentUi());
+        refs.notificationLikes.addEventListener("change", () => persistCurrentUi());
+        refs.notificationRetweets.addEventListener("change", () => persistCurrentUi());
+
+        refs.homeRedirect.addEventListener("change", (event) => {
+            handleRedirectToggleChange("home", event);
+        });
+
+        refs.exploreRedirect.addEventListener("change", (event) => {
+            handleRedirectToggleChange("explore", event);
+        });
+
+        refs.messagesRedirect.addEventListener("change", (event) => {
+            handleRedirectToggleChange("messages", event);
+        });
+
+        refs.autoFollowingTab.addEventListener("change", () => {
+            enforceMutualExclusion("autoFollowingTab");
+            persistCurrentUi();
+        });
+
+        refs.hideForYouTab.addEventListener("change", () => persistCurrentUi());
+        refs.hideTrendingSidebar.addEventListener("change", () => persistCurrentUi());
+        refs.hideSuggestions.addEventListener("change", () => persistCurrentUi());
+        refs.threadReader.addEventListener("change", () => persistCurrentUi());
+        refs.quickBookmark.addEventListener("change", () => persistCurrentUi());
+        refs.exploreRedirectAllowSearch.addEventListener("change", () => persistCurrentUi());
+
+        refs.homeRedirectTarget.addEventListener("change", () => persistCurrentUi());
+        refs.exploreRedirectTarget.addEventListener("change", () => persistCurrentUi());
+        refs.messagesRedirectTarget.addEventListener("change", () => persistCurrentUi());
+
+        refs.homeRedirectCustom.addEventListener("input", () => queueSave());
+        refs.exploreRedirectCustom.addEventListener("input", () => queueSave());
+        refs.messagesRedirectCustom.addEventListener("input", () => queueSave());
+
+        refs.mutedWords.addEventListener("input", () => queueSave());
+        refs.dailyLimitMinutes.addEventListener("input", () => queueSave());
+
+        refs.scheduleEnabled.addEventListener("change", () => {
+            updateScheduleControlsEnabledState();
+            persistCurrentUi({ scheduleEval: true });
+        });
+
+        refs.scheduleStart.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleEnd.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+
+        for (let day = 0; day <= 6; day += 1) {
+            const el = refs[`scheduleDay${day}`];
+            if (el) {
+                el.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+            }
+        }
+
+        refs.scheduleFeatureHomeRedirect.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleFeatureExploreRedirect.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleFeatureMessagesRedirect.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleFeatureHideTrendingSidebar.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleFeatureHideSuggestions.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleFeatureHideForYouTab.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+        refs.scheduleFeatureAutoFollowingTab.addEventListener("change", () => persistCurrentUi({ scheduleEval: true }));
+
+        refs.schedulePauseToggle.addEventListener("click", async () => {
+            if (!refs.scheduleEnabled.checked) return;
+            state.settings.schedulePaused = !state.settings.schedulePaused;
+            refs.schedulePauseToggle.textContent = state.settings.schedulePaused
+                ? "Resume schedule"
+                : "Pause schedule";
+            await syncSet({ schedulePaused: state.settings.schedulePaused });
+            await sendRuntimeMessage({ action: "evaluateSchedule" });
+            const latest = await syncGet(DEFAULTS);
+            state.settings = mergeSettings(latest);
+            state.suppressEvents = true;
+            applySettingsToUi();
+            state.suppressEvents = false;
+        });
+
+        setupOptionRowClickBehavior();
+    }
+
+    async function init() {
+        state.refs = getRefs();
+        bindEvents();
+        setupStorageListeners();
+
+        const loaded = await syncGet(DEFAULTS);
+        state.settings = mergeSettings(loaded);
+
+        state.suppressEvents = true;
+        applySettingsToUi();
+        state.suppressEvents = false;
+
+        await refreshUsageUi();
+
+        state.usageTimerId = setInterval(() => {
+            refreshUsageUi();
         }, 30000);
+
+        state.snoozeTimerId = setInterval(() => {
+            updateSnoozeIndicators();
+        }, 30000);
+
+        await sendRuntimeMessage({ action: "ensureBackgroundState" });
     }
 
-    // Function to make entire option elements clickable with asymmetric behavior for focus features
-    function makeOptionClickable(optionElement, toggleElement) {
-        optionElement.addEventListener("click", (e) => {
-            // Prevent triggering if the click was on the toggle switch itself
-            // This prevents double-triggering when clicking directly on the switch
-            if (e.target.closest(".switch")) {
-                return;
-            }
-
-            // Prevent event bubbling
-            e.stopPropagation();
-
-            // Check if this is a focus feature (has friction mechanism)
-            const isFocusFeature =
-                toggleElement.id === "homeRedirect" || toggleElement.id === "exploreRedirect";
-
-            if (isFocusFeature) {
-                // For focus features: only allow enabling via area click, require toggle click to disable
-                if (!toggleElement.checked) {
-                    // Feature is currently disabled, allow enabling via area click
-                    toggleElement.checked = true;
-
-                    // Trigger the change event to maintain existing functionality
-                    const changeEvent = new Event("change", { bubbles: true });
-                    toggleElement.dispatchEvent(changeEvent);
-                }
-                // If feature is enabled, do nothing - user must click toggle to disable (with friction)
-            } else {
-                // For utility features: maintain original toggle behavior
-                toggleElement.checked = !toggleElement.checked;
-
-                // Trigger the change event to maintain existing functionality
-                const changeEvent = new Event("change", { bubbles: true });
-                toggleElement.dispatchEvent(changeEvent);
-            }
-        });
-    }
-
-    // Add event listeners
-    $posts.addEventListener("change", save);
-    $notifs.addEventListener("change", save);
-    $homeRedirect.addEventListener("change", handleHomeRedirectToggle);
-
-    // Add explore redirect event listener if element exists
-    if ($exploreRedirect) {
-        $exploreRedirect.addEventListener("change", handleExploreRedirectToggle);
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        load();
-        startSnoozeIndicatorUpdates();
-
-        // Make entire option elements clickable
-        const optionElements = document.querySelectorAll(".option");
-        optionElements.forEach((optionElement) => {
-            // Find the checkbox within this option
-            const checkbox = optionElement.querySelector('input[type="checkbox"]');
-            if (checkbox) {
-                makeOptionClickable(optionElement, checkbox);
-            }
-        });
-    });
+    document.addEventListener("DOMContentLoaded", init);
 })();

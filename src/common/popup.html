@@ -11,64 +11,224 @@
             <header>
                 <div class="icon-and-title">
                     <img src="assets/icon16.png" alt="XPlus" class="header-icon" />
-                    <h1>XPlus</h1>
+                    <div>
+                        <h1>XPlus</h1>
+                        <div class="header-subline" id="todayUsage">Today: --</div>
+                    </div>
                 </div>
+                <div class="schedule-pill" id="schedulePill" style="display: none"></div>
             </header>
 
             <section class="focus-features">
-                <h3 class="section-header">
-                    <span class="section-icon">🎯</span>
-                    Focus Features
-                </h3>
+                <h3 class="section-header">Focus Features</h3>
                 <div class="section-divider"></div>
+                <div class="focus-row-hint">Tip: click switch to disable focus redirects</div>
 
-                <div class="option">
+                <div class="option option-focus" data-clickable="true" data-focus-redirect="home">
                     <label class="switch">
                         <input type="checkbox" id="homeRedirect" />
                         <span class="slider"></span>
                     </label>
                     <div class="label-text">
                         <div class="title">Home Redirect</div>
-                        <div class="desc">Redirect Home to Bookmarks</div>
+                        <div class="desc">Redirect Home away from algorithmic feed</div>
                     </div>
                 </div>
-
+                <div class="redirect-target-row" data-target-for="home">
+                    <label for="homeRedirectTarget">Redirect to</label>
+                    <select id="homeRedirectTarget">
+                        <option value="bookmarks">Bookmarks</option>
+                        <option value="lists">Lists</option>
+                        <option value="messages">Messages</option>
+                        <option value="custom">Custom URL</option>
+                    </select>
+                    <input
+                        id="homeRedirectCustom"
+                        type="url"
+                        placeholder="https://x.com/i/lists/123"
+                        class="custom-target"
+                    />
+                </div>
                 <div class="snooze-status" id="snoozeStatus" style="display: none">
-                    <div class="snooze-indicator">
-                        <span class="snooze-icon">⏰</span>
-                        <span class="snooze-text">Snoozed for <span id="snoozeTime"></span></span>
-                    </div>
+                    <span>⏰ Snoozed for <span id="snoozeTime"></span></span>
                 </div>
 
-                <div class="option">
+                <div class="option option-focus" data-clickable="true" data-focus-redirect="explore">
                     <label class="switch">
                         <input type="checkbox" id="exploreRedirect" />
                         <span class="slider"></span>
                     </label>
                     <div class="label-text">
                         <div class="title">Explore Redirect</div>
-                        <div class="desc">Redirect Explore to Bookmarks</div>
+                        <div class="desc">Redirect Explore and trending discovery pages</div>
+                    </div>
+                </div>
+                <div class="redirect-target-row" data-target-for="explore">
+                    <label for="exploreRedirectTarget">Redirect to</label>
+                    <select id="exploreRedirectTarget">
+                        <option value="bookmarks">Bookmarks</option>
+                        <option value="lists">Lists</option>
+                        <option value="messages">Messages</option>
+                        <option value="custom">Custom URL</option>
+                    </select>
+                    <input
+                        id="exploreRedirectCustom"
+                        type="url"
+                        placeholder="https://x.com/i/lists/123"
+                        class="custom-target"
+                    />
+                </div>
+                <div class="option option-sub" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="exploreRedirectAllowSearch" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Allow Search-Initiated Explore</div>
+                        <div class="desc">Skip redirect when opening Explore from search</div>
+                    </div>
+                </div>
+                <div class="snooze-status" id="exploreSnoozeStatus" style="display: none">
+                    <span>⏰ Snoozed for <span id="exploreSnoozeTime"></span></span>
+                </div>
+
+                <div class="option option-focus" data-clickable="true" data-focus-redirect="messages">
+                    <label class="switch">
+                        <input type="checkbox" id="messagesRedirect" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">DM Redirect</div>
+                        <div class="desc">Redirect /messages during focus sessions</div>
+                    </div>
+                </div>
+                <div class="redirect-target-row" data-target-for="messages">
+                    <label for="messagesRedirectTarget">Redirect to</label>
+                    <select id="messagesRedirectTarget">
+                        <option value="bookmarks">Bookmarks</option>
+                        <option value="lists">Lists</option>
+                        <option value="home">Home</option>
+                        <option value="custom">Custom URL</option>
+                    </select>
+                    <input
+                        id="messagesRedirectCustom"
+                        type="url"
+                        placeholder="https://x.com/i/bookmarks"
+                        class="custom-target"
+                    />
+                </div>
+                <div class="snooze-status" id="messagesSnoozeStatus" style="display: none">
+                    <span>⏰ Snoozed for <span id="messagesSnoozeTime"></span></span>
+                </div>
+
+                <div class="option" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="autoFollowingTab" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Auto-Following Tab</div>
+                        <div class="desc">Switch Home timeline to Following automatically</div>
                     </div>
                 </div>
 
-                <div class="snooze-status" id="exploreSnoozeStatus" style="display: none">
-                    <div class="snooze-indicator">
-                        <span class="snooze-icon">⏰</span>
-                        <span class="snooze-text"
-                            >Snoozed for <span id="exploreSnoozeTime"></span
-                        ></span>
+                <div class="option" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="hideForYouTab" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Hide For You Tab</div>
+                        <div class="desc">Hide algorithmic tab and keep Following visible</div>
+                    </div>
+                </div>
+
+                <div class="option" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="hideTrendingSidebar" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Hide Trending Sidebar</div>
+                        <div class="desc">Hide "What's happening" while keeping search</div>
+                    </div>
+                </div>
+
+                <div class="option" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="hideSuggestions" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Hide Suggestions</div>
+                        <div class="desc">Hide "Who to follow" sidebar and feed modules</div>
+                    </div>
+                </div>
+
+                <div class="option" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="threadReader" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Thread Reader</div>
+                        <div class="desc">Reader button on thread pages, toggle with R key</div>
+                    </div>
+                </div>
+
+                <div class="schedule-box">
+                    <div class="option" data-clickable="true">
+                        <label class="switch">
+                            <input type="checkbox" id="scheduleEnabled" />
+                            <span class="slider"></span>
+                        </label>
+                        <div class="label-text">
+                            <div class="title">Schedule</div>
+                            <div class="desc">Auto-enable focus settings in selected time blocks</div>
+                        </div>
+                    </div>
+
+                    <div class="schedule-controls" id="scheduleControls">
+                        <div class="time-range-row">
+                            <label for="scheduleStart">Start</label>
+                            <input type="time" id="scheduleStart" />
+                            <label for="scheduleEnd">End</label>
+                            <input type="time" id="scheduleEnd" />
+                        </div>
+
+                        <div class="days-grid" id="daysGrid">
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay0" />Su</label>
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay1" />Mo</label>
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay2" />Tu</label>
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay3" />We</label>
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay4" />Th</label>
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay5" />Fr</label>
+                            <label class="day-chip"><input type="checkbox" id="scheduleDay6" />Sa</label>
+                        </div>
+
+                        <div class="schedule-feature-grid">
+                            <label><input type="checkbox" id="scheduleFeatureHomeRedirect" /> Home Redirect</label>
+                            <label><input type="checkbox" id="scheduleFeatureExploreRedirect" /> Explore Redirect</label>
+                            <label><input type="checkbox" id="scheduleFeatureMessagesRedirect" /> DM Redirect</label>
+                            <label><input type="checkbox" id="scheduleFeatureHideTrendingSidebar" /> Hide Trending</label>
+                            <label><input type="checkbox" id="scheduleFeatureHideSuggestions" /> Hide Suggestions</label>
+                            <label><input type="checkbox" id="scheduleFeatureHideForYouTab" /> Hide For You</label>
+                            <label><input type="checkbox" id="scheduleFeatureAutoFollowingTab" /> Auto-Following</label>
+                        </div>
+
+                        <div class="schedule-actions">
+                            <button id="schedulePauseToggle" class="small-btn" type="button">Pause schedule</button>
+                            <span id="scheduleStatusText"></span>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <section class="utility-features">
-                <h3 class="section-header">
-                    <span class="section-icon">🔧</span>
-                    Utility Features
-                </h3>
+                <h3 class="section-header">Utility Features</h3>
                 <div class="section-divider"></div>
 
-                <div class="option">
+                <div class="option" data-clickable="true">
                     <label class="switch">
                         <input type="checkbox" id="posts" />
                         <span class="slider"></span>
@@ -79,111 +239,112 @@
                     </div>
                 </div>
 
-                <div class="option">
+                <div class="option" data-clickable="true">
                     <label class="switch">
                         <input type="checkbox" id="notifications" />
                         <span class="slider"></span>
                     </label>
                     <div class="label-text">
                         <div class="title">Notifications</div>
-                        <div class="desc">Open notifications in a new tab</div>
+                        <div class="desc">Open selected notification tabs in a new tab</div>
                     </div>
+                </div>
+
+                <div class="notification-filters" id="notificationFilters">
+                    <label><input type="checkbox" id="notificationMentions" /> Mentions</label>
+                    <label><input type="checkbox" id="notificationReplies" /> Replies</label>
+                    <label><input type="checkbox" id="notificationLikes" /> Likes</label>
+                    <label><input type="checkbox" id="notificationRetweets" /> Retweets</label>
+                </div>
+
+                <div class="option" data-clickable="true">
+                    <label class="switch">
+                        <input type="checkbox" id="quickBookmark" />
+                        <span class="slider"></span>
+                    </label>
+                    <div class="label-text">
+                        <div class="title">Quick Bookmark</div>
+                        <div class="desc">Add one-click bookmark button on feed posts</div>
+                    </div>
+                </div>
+
+                <div class="text-setting">
+                    <label for="mutedWords" class="setting-label">Muted Words</label>
+                    <textarea
+                        id="mutedWords"
+                        rows="3"
+                        placeholder="word one, word two, topic"
+                    ></textarea>
+                    <div class="setting-help">Comma-separated words to hide matching posts</div>
+                </div>
+
+                <div class="time-limit-row">
+                    <label for="dailyLimitMinutes">Daily Time Limit (minutes)</label>
+                    <input type="number" id="dailyLimitMinutes" min="0" max="1440" step="5" />
+                </div>
+
+                <div class="usage-box">
+                    <div class="usage-title">Weekly usage</div>
+                    <div class="usage-chart" id="weeklyChart"></div>
+                    <div class="usage-footnote" id="usageFootnote"></div>
                 </div>
             </section>
         </div>
 
-        <!-- Confirmation Dialog Overlay -->
         <div class="dialog-overlay" id="confirmDialog" style="display: none">
             <div class="dialog-content">
                 <div class="dialog-header">
-                    <span class="dialog-icon">⚠️</span>
-                    <h3 class="dialog-title" id="dialogTitle">Disable Home Redirect?</h3>
+                    <h3 class="dialog-title" id="dialogTitle"></h3>
                 </div>
                 <div class="dialog-body">
-                    <p class="dialog-message">
-                        The Home Redirect feature helps maintain your focus by redirecting you to
-                        your bookmarks instead of distracting social feeds. Are you sure you want to
-                        disable this productivity feature?
-                    </p>
+                    <p class="dialog-message" id="dialogMessage"></p>
                 </div>
                 <div class="dialog-actions">
-                    <button class="dialog-btn dialog-btn-cancel" id="confirmCancel">
-                        Keep Enabled
-                    </button>
-                    <button class="dialog-btn dialog-btn-confirm" id="confirmProceed">
-                        Yes, Disable
-                    </button>
+                    <button class="dialog-btn dialog-btn-cancel" id="confirmCancel">Keep Enabled</button>
+                    <button class="dialog-btn dialog-btn-confirm" id="confirmProceed">Continue</button>
                 </div>
             </div>
         </div>
 
-        <!-- Snooze Options Dialog Overlay -->
         <div class="dialog-overlay" id="snoozeDialog" style="display: none">
             <div class="dialog-content snooze-content">
                 <div class="dialog-header">
-                    <span class="dialog-icon">⏰</span>
-                    <h3 class="dialog-title">How long should we disable this?</h3>
+                    <h3 class="dialog-title" id="snoozeTitle">Disable Temporarily?</h3>
                 </div>
                 <div class="dialog-body">
-                    <p class="dialog-message">
-                        Consider taking a short break instead of permanently disabling your focus
-                        feature.
-                    </p>
+                    <p class="dialog-message">Choose a snooze duration or disable permanently.</p>
                     <div class="snooze-options">
-                        <button class="snooze-option" data-duration="15">
-                            <span class="snooze-time">15 minutes</span>
-                            <span class="snooze-desc">Quick break</span>
-                        </button>
-                        <button class="snooze-option" data-duration="60">
-                            <span class="snooze-time">1 hour</span>
-                            <span class="snooze-desc">Short session</span>
-                        </button>
-                        <button class="snooze-option" data-duration="240">
-                            <span class="snooze-time">4 hours</span>
-                            <span class="snooze-desc">Extended break</span>
-                        </button>
-                        <button class="snooze-option" data-duration="tomorrow">
-                            <span class="snooze-time">Until tomorrow</span>
-                            <span class="snooze-desc">Rest for today</span>
-                        </button>
+                        <button class="snooze-option" data-duration="15" type="button">15 minutes</button>
+                        <button class="snooze-option" data-duration="60" type="button">1 hour</button>
+                        <button class="snooze-option" data-duration="240" type="button">4 hours</button>
+                        <button class="snooze-option" data-duration="tomorrow" type="button">Until tomorrow</button>
                     </div>
-                    <div class="permanent-option">
-                        <button class="permanent-disable-btn" id="permanentDisable">
-                            Disable permanently
-                        </button>
-                    </div>
+                    <button class="permanent-disable-btn" id="permanentDisable" type="button">
+                        Disable permanently
+                    </button>
                 </div>
                 <div class="dialog-actions">
-                    <button class="dialog-btn dialog-btn-cancel" id="snoozeCancel">
-                        Keep Enabled
-                    </button>
+                    <button class="dialog-btn dialog-btn-cancel" id="snoozeCancel">Keep Enabled</button>
                 </div>
             </div>
         </div>
 
-        <!-- Countdown Dialog Overlay -->
         <div class="dialog-overlay" id="countdownDialog" style="display: none">
             <div class="dialog-content countdown-content">
                 <div class="dialog-header">
-                    <span class="dialog-icon countdown-icon">⏱️</span>
-                    <h3 class="dialog-title">Disabling in...</h3>
+                    <h3 class="dialog-title" id="countdownTitle">Disabling in...</h3>
                 </div>
                 <div class="dialog-body">
-                    <div class="countdown-display">
-                        <span class="countdown-number" id="countdownNumber">15</span>
-                        <span class="countdown-label">seconds</span>
-                    </div>
-                    <p class="countdown-message">
-                        Take a deep breath and reconsider. This will disable your focus feature.
-                    </p>
+                    <div class="countdown-display"><span id="countdownNumber">15</span>s</div>
+                    <p class="countdown-message" id="countdownMessage"></p>
                 </div>
                 <div class="dialog-actions">
-                    <button class="dialog-btn dialog-btn-cancel" id="countdownCancel">
-                        Cancel
-                    </button>
+                    <button class="dialog-btn dialog-btn-cancel" id="countdownCancel">Cancel</button>
                 </div>
             </div>
         </div>
+
+        <div id="toast" class="toast" style="display: none"></div>
 
         <script src="popup.js"></script>
     </body>

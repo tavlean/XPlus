@@ -2,6 +2,49 @@
 
 All notable changes to XPlus will be documented in this file.
 
+## [1.5.0] - 2026-03-01
+
+### Added
+
+-   Focus feature expansion:
+    -   Hide For You tab
+    -   Hide trending sidebar modules
+    -   Hide Who to Follow suggestions
+    -   Auto-switch Home timeline to Following
+    -   DM redirect with same friction/snooze flow as other focus redirects
+-   Reader mode on thread pages:
+    -   Floating Reader button
+    -   Keyboard shortcut `R` to toggle overlay
+-   Redirect destination customization:
+    -   Per-feature redirect target selectors
+    -   Custom URL support
+-   Usage tracking:
+    -   Daily active-time tracking on X via `idle` + alarms
+    -   Weekly usage mini chart in popup
+    -   80% warning notification and 100% hard-limit overlay
+-   Muted words filter with reveal placeholders
+-   Quick bookmark injection on feed posts
+-   Notification sub-filters in popup (mentions/replies/likes/retweets)
+-   Schedule-based feature activation with pause/resume and active-window status
+
+### Changed
+
+-   Redirect engine now uses dynamic DNR rules and shared target resolution
+-   Explore redirect now supports optional bypass for search-initiated visits
+-   Focus snooze state now surfaces in the extension badge countdown
+-   Friction countdown for snoozes is capped (max 30s) to reduce long-delay friction
+-   Popup updated for scalability on small screens (scrollable container)
+-   Focus rows now include clearer disable discoverability hints
+-   Popup friction/dialog lookups are lazy-loaded on first use for faster popup open
+
+### Fixed
+
+-   Notification icon path for background notifications now resolves correctly (`assets/icon48.png`)
+-   Content script performance improved:
+    -   Processes `mutation.addedNodes` instead of rescanning all links
+    -   Uses delegated click handling instead of per-link listeners
+    -   Marks processed links with `data-xplus-processed`
+
 ## [1.4.0] - 2025-01-26
 
 ### Added - Detailed Changelog
