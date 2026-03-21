@@ -18,50 +18,78 @@
         <main class="policy">
             <div class="container">
                 <p class="last-updated">
-                    Last updated: <time datetime="2025-07-19">Sep 25, 2025</time>
+                    Last updated: <time datetime="2026-03-22">Mar 22, 2026</time>
                 </p>
 
                 <h2>Overview</h2>
                 <p>
-                    XPlus is a browser extension that enhances your Twitter/X experience by allowing
-                    you to open posts in new tabs. This privacy policy explains what data we collect
-                    and how we use it.
+                    XPlus is a browser extension for X (Twitter) with feed and focus tools. This
+                    privacy policy explains what data the extension uses and how it is stored.
                 </p>
 
                 <h2>Data Collection</h2>
                 <p>
-                    XPlus does <strong>not</strong> collect, store, or transmit any personal data.
-                    The extension:
+                    XPlus does <strong>not</strong> collect, store, or transmit personal data to us
+                    or to third-party servers. The extension:
                 </p>
                 <ul>
-                    <li>Only runs on x.com domain</li>
-                    <li>Does not access your X account or personal information</li>
-                    <li>Does not track your browsing activity</li>
-                    <li>Does not send data to external servers</li>
+                    <li>Only runs on x.com</li>
+                    <li>Does not access your X account credentials or personal information</li>
+                    <li>Does not send your browsing history or activity to external servers</li>
                     <li>
-                        Only stores your feature preferences and snooze settings locally in your
-                        browser
+                        Stores your settings (including snooze and optional daily time limits) in
+                        your browser using extension storage only
                     </li>
-                    <li>Only modifies how links open and redirects on X pages</li>
+                    <li>
+                        If you enable optional screen-time features, aggregates time on X locally in
+                        your browser; that data stays on your device
+                    </li>
+                    <li>Only changes how X pages behave in your browser (including optional redirects)</li>
                 </ul>
 
                 <h2>Permissions</h2>
-                <p>The extension requires minimal permissions:</p>
+                <p>
+                    The extension asks for the minimum needed for these features. Install dialogs may
+                    use broad wording; below is what each permission is used for in XPlus.
+                </p>
                 <ul>
-                    <li><code>tabs</code> - To open new tabs for posts and notifications</li>
                     <li>
-                        <code>storage</code> - To save your feature preferences and snooze settings
-                        locally
+                        <strong>Site access (<code>https://x.com/*</code> and
+                        <code>https://*.x.com/*</code>)</strong> — Injected scripts and changes on X
+                        only.
                     </li>
                     <li>
-                        <code>alarms</code> - To handle automatic re-enable after snooze periods
+                        <strong><code>tabs</code></strong> — Open links in new tabs, find X tabs to
+                        apply settings, and message X tabs when needed (for example usage updates).
+                        XPlus does not use Chrome’s History API. Browsers may still describe this
+                        permission with generic “history”-related wording.
                     </li>
-                    <li><code>declarativeNetRequest</code> - To redirect home page to bookmarks</li>
-                    <li><code>https://x.com/*</code> - To work on X (formerly Twitter)</li>
+                    <li>
+                        <strong><code>storage</code></strong> — Save preferences, snooze state, and
+                        optional local usage summaries.
+                    </li>
+                    <li>
+                        <strong><code>declarativeNetRequest</code></strong> — Network-level
+                        redirects on X (for example home, Explore, or Messages to a destination you
+                        choose). Rules are limited to X URLs. Install dialogs may mention “blocking”
+                        in a general way; XPlus does not modify other sites.
+                    </li>
+                    <li>
+                        <strong><code>alarms</code></strong> — Timers for snooze expiry, schedules,
+                        and periodic checks (for example screen time and badge updates).
+                    </li>
+                    <li>
+                        <strong><code>notifications</code></strong> — Optional alerts when a snooze
+                        ends or when optional daily time limits are reached.
+                    </li>
+                    <li>
+                        <strong><code>idle</code></strong> — Optional: detect system idle time so
+                        screen-time tracking does not count when you are away from the keyboard.
+                    </li>
                 </ul>
 
                 <h2>Third-Party Services</h2>
-                <p>XweetTab does not use any third-party services, analytics, or tracking tools.</p>
+                <p>XPlus does not use third-party analytics, ads, or tracking services.</p>
 
                 <h2>Open Source</h2>
                 <p>
@@ -82,9 +110,12 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 XPlus.</p>
+            <p>&copy; <span id="copyright-year"></span> XPlus.</p>
             <a href="privacy.html">Privacy Policy</a>
             <a href="https://github.com/tavlean/XPlus">GitHub</a>
         </footer>
+        <script>
+            document.getElementById("copyright-year").textContent = new Date().getFullYear();
+        </script>
     </body>
 </html>
