@@ -29,14 +29,14 @@
                     </label>
                     <div class="label-text">
                         <div class="title">Home Redirect</div>
-                        <div class="desc">Home → Bookmarks</div>
+                        <div class="desc">Redirects feed to bookmarks</div>
                     </div>
                 </div>
 
                 <div class="snooze-status" id="snoozeStatus" style="display: none">
                     <div class="snooze-indicator">
                         <span class="snooze-icon">⏰</span>
-                        <span class="snooze-text">Snoozed for <span id="snoozeTime"></span></span>
+                        <span class="snooze-text">Resumes in <span id="snoozeTime"></span></span>
                     </div>
                 </div>
 
@@ -47,7 +47,7 @@
                     </label>
                     <div class="label-text">
                         <div class="title">Explore Redirect</div>
-                        <div class="desc">Explore → Bookmarks</div>
+                        <div class="desc">Redirects Explore to bookmarks</div>
                     </div>
                 </div>
 
@@ -55,7 +55,7 @@
                     <div class="snooze-indicator">
                         <span class="snooze-icon">⏰</span>
                         <span class="snooze-text"
-                            >Snoozed for <span id="exploreSnoozeTime"></span
+                            >Resumes in <span id="exploreSnoozeTime"></span
                         ></span>
                     </div>
                 </div>
@@ -75,7 +75,7 @@
                     </label>
                     <div class="label-text">
                         <div class="title">Posts</div>
-                        <div class="desc">Timestamps open in new tab</div>
+                        <div class="desc">Post timestamps open in new tab</div>
                     </div>
                 </div>
 
@@ -86,7 +86,7 @@
                     </label>
                     <div class="label-text">
                         <div class="title">Notifications</div>
-                        <div class="desc">Open in new tab</div>
+                        <div class="desc">Opens in new tab</div>
                     </div>
                 </div>
             </section>
@@ -101,7 +101,7 @@
                 </div>
                 <div class="dialog-body">
                     <p class="dialog-message">
-                        This keeps you focused by redirecting to bookmarks. Disable it?
+                        This keeps you focused by redirecting your feed to bookmarks. Are you sure you want to disable it?
                     </p>
                 </div>
                 <div class="dialog-actions">
@@ -124,29 +124,29 @@
                 </div>
                 <div class="dialog-body">
                     <p class="dialog-message">
-                        Pause instead of fully disabling.
+                        Take a temporary break — it'll turn back on automatically.
                     </p>
                     <div class="snooze-options">
+                        <button class="snooze-option" data-duration="5">
+                            <span class="snooze-time">5 minutes</span>
+                            <span class="snooze-desc">Quick peek</span>
+                        </button>
                         <button class="snooze-option" data-duration="15">
                             <span class="snooze-time">15 minutes</span>
-                            <span class="snooze-desc">Quick break</span>
+                            <span class="snooze-desc">Short break</span>
                         </button>
                         <button class="snooze-option" data-duration="60">
                             <span class="snooze-time">1 hour</span>
-                            <span class="snooze-desc">Short session</span>
+                            <span class="snooze-desc">Extended break</span>
                         </button>
                         <button class="snooze-option" data-duration="240">
                             <span class="snooze-time">4 hours</span>
-                            <span class="snooze-desc">Extended break</span>
-                        </button>
-                        <button class="snooze-option" data-duration="tomorrow">
-                            <span class="snooze-time">Until tomorrow</span>
-                            <span class="snooze-desc">Rest for today</span>
+                            <span class="snooze-desc">Half-day off</span>
                         </button>
                     </div>
                     <div class="permanent-option">
                         <button class="permanent-disable-btn" id="permanentDisable">
-                            Disable permanently
+                            Permanently remove protection
                         </button>
                     </div>
                 </div>

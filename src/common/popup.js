@@ -9,13 +9,8 @@
         notifications: true,
         homeRedirect: false,
         exploreRedirect: false,
-        // Friction data fields for home redirect
         snoozeEndTime: null,
-        disableAttempts: 0,
-        lastAttemptDate: null,
-        // Friction data fields for explore redirect
         exploreSnoozeEndTime: null,
-        exploreDisableAttempts: 0,
     };
 
     // Helper functions for safe storage operations
@@ -45,81 +40,24 @@
 
     // Helper function to get friction-specific data for a feature type
     function getFrictionData(featureType, callback) {
-        // If no featureType provided, default to 'home' for backward compatibility
-        if (typeof featureType === "function") {
-            callback = featureType;
-            featureType = "home";
-        }
-
-        const keys = ["lastAttemptDate"];
-
-        if (featureType === "home") {
-            keys.push("snoozeEndTime", "disableAttempts");
-        } else if (featureType === "explore") {
-            keys.push("exploreSnoozeEndTime", "exploreDisableAttempts");
-        }
-
-        safeStorageGet(keys, (items) => {
-            if (featureType === "home") {
-                callback({
-                    snoozeEndTime: items.snoozeEndTime,
-                    disableAttempts: items.disableAttempts || 0,
-                    lastAttemptDate: items.lastAttemptDate,
-                });
-            } else if (featureType === "explore") {
-                callback({
-                    snoozeEndTime: items.exploreSnoozeEndTime,
-                    disableAttempts: items.exploreDisableAttempts || 0,
-                    lastAttemptDate: items.lastAttemptDate,
-                });
-            }
+        const key = featureType === "home" ? "snoozeEndTime" : "exploreSnoozeEndTime";
+        safeStorageGet([key], (items) => {
+            callback({ snoozeEndTime: items[key] });
         });
     }
 
     // Helper function to update friction data for a feature type
     function updateFrictionData(featureType, frictionData, callback) {
-        // Handle backward compatibility - if first param is object, treat as old API
-        if (typeof featureType === "object") {
-            callback = frictionData;
-            frictionData = featureType;
-            featureType = "home";
-        }
-
         const updateData = {};
-
-        if (featureType === "home") {
-            if (frictionData.snoozeEndTime !== undefined) {
-                updateData.snoozeEndTime = frictionData.snoozeEndTime;
-            }
-            if (frictionData.disableAttempts !== undefined) {
-                updateData.disableAttempts = frictionData.disableAttempts;
-            }
-        } else if (featureType === "explore") {
-            if (frictionData.snoozeEndTime !== undefined) {
-                updateData.exploreSnoozeEndTime = frictionData.snoozeEndTime;
-            }
-            if (frictionData.disableAttempts !== undefined) {
-                updateData.exploreDisableAttempts = frictionData.disableAttempts;
-            }
+        if (frictionData.snoozeEndTime !== undefined) {
+            const key = featureType === "home" ? "snoozeEndTime" : "exploreSnoozeEndTime";
+            updateData[key] = frictionData.snoozeEndTime;
         }
-
-        if (frictionData.lastAttemptDate !== undefined) {
-            updateData.lastAttemptDate = frictionData.lastAttemptDate;
-        }
-
         safeStorageSet(updateData, callback);
     }
 
     // Confirmation dialog functions
     function showConfirmDialog(featureType, message, onConfirm, onCancel) {
-        // Handle backward compatibility - if first param is string message, shift params
-        if (typeof featureType === "string" && typeof message === "function") {
-            onCancel = onConfirm;
-            onConfirm = message;
-            message = featureType;
-            featureType = "home";
-        }
-
         const dialog = q("#confirmDialog");
         const titleEl = q("#dialogTitle");
         const messageEl = q(".dialog-message");
@@ -137,10 +75,10 @@
         if (!message) {
             if (featureType === "home") {
                 message =
-                    "This keeps you focused by redirecting to bookmarks. Disable it?";
+                    "This keeps you focused by redirecting your feed to bookmarks. Are you sure you want to disable it?";
             } else if (featureType === "explore") {
                 message =
-                    "This keeps you focused by redirecting away from trending content. Disable it?";
+                    "This keeps you focused by redirecting away from trending content. Are you sure you want to disable it?";
             }
         }
 
@@ -182,14 +120,6 @@
 
     // Snooze options dialog functions
     function showSnoozeOptions(featureType, onSnoozeSelect, onPermanentDisable, onCancel) {
-        // Handle backward compatibility - if first param is function, shift params
-        if (typeof featureType === "function") {
-            onCancel = onPermanentDisable;
-            onPermanentDisable = onSnoozeSelect;
-            onSnoozeSelect = featureType;
-            featureType = "home";
-        }
-
         const dialog = q("#snoozeDialog");
         const snoozeOptions = dialog.querySelectorAll(".snooze-option");
         const permanentBtn = q("#permanentDisable");
@@ -248,19 +178,39 @@
     function showCountdownDialog(seconds, onComplete, onCancel) {
         const dialog = q("#countdownDialog");
         const countdownNumber = q("#countdownNumber");
+        const countdownLabel = q(".countdown-label");
         const cancelBtn = q("#countdownCancel");
 
         let currentSeconds = seconds;
         let countdownInterval;
 
+        // Format the countdown display (mm:ss for 60+, raw number for <60)
+        function formatCountdown(secs) {
+            if (secs >= 60) {
+                const mins = Math.floor(secs / 60);
+                const s = secs % 60;
+                countdownNumber.textContent = `${mins}:${s.toString().padStart(2, "0")}`;
+                countdownLabel.textContent = "remaining";
+            } else {
+                countdownNumber.textContent = secs;
+                countdownLabel.textContent = "seconds";
+            }
+        }
+
+        // Cleanup all listeners and intervals
+        function cleanup() {
+            clearInterval(countdownInterval);
+            dialog.style.display = "none";
+            cancelBtn.removeEventListener("click", handleCancel);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        }
+
         // Update countdown display
         function updateCountdown() {
-            countdownNumber.textContent = currentSeconds;
+            formatCountdown(currentSeconds);
 
             if (currentSeconds <= 0) {
-                clearInterval(countdownInterval);
-                dialog.style.display = "none";
-                cancelBtn.removeEventListener("click", handleCancel);
+                cleanup();
                 if (onComplete) onComplete();
                 return;
             }
@@ -270,23 +220,32 @@
 
         // Handle cancel button
         const handleCancel = () => {
-            clearInterval(countdownInterval);
-            dialog.style.display = "none";
-            cancelBtn.removeEventListener("click", handleCancel);
+            cleanup();
             if (onCancel) onCancel();
+        };
+
+        // Reset countdown if user switches away from the popup
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                cleanup();
+                if (onCancel) onCancel();
+            }
         };
 
         // Show the dialog
         dialog.style.display = "flex";
 
-        // Set initial countdown number
-        countdownNumber.textContent = currentSeconds;
+        // Set initial countdown display
+        formatCountdown(currentSeconds);
 
         // Start countdown
         countdownInterval = setInterval(updateCountdown, 1000);
 
         // Add cancel button listener
         cancelBtn.addEventListener("click", handleCancel);
+
+        // Reset countdown when user leaves the popup
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         // Close dialog when clicking outside (cancel countdown)
         dialog.addEventListener("click", (e) => {
@@ -296,75 +255,33 @@
         });
     }
 
-    // Helper function to reset daily attempt counter if needed for a feature type
-    function resetDailyAttemptsIfNeeded(featureType, callback) {
-        // Handle backward compatibility - if first param is function, treat as old API
-        if (typeof featureType === "function") {
-            callback = featureType;
-            featureType = "home";
-        }
-
-        getFrictionData(featureType, (frictionData) => {
-            const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-
-            if (frictionData.lastAttemptDate !== today) {
-                updateFrictionData(
-                    featureType,
-                    {
-                        disableAttempts: 0,
-                        lastAttemptDate: today,
-                    },
-                    callback
-                );
-            } else {
-                if (callback) callback();
-            }
-        });
-    }
-
     // Helper function to calculate snooze end time
     function calculateSnoozeEndTime(duration) {
-        const now = new Date();
-
-        if (duration === "tomorrow") {
-            // Set to tomorrow at 9 AM
-            const tomorrow = new Date(now);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(9, 0, 0, 0);
-            return tomorrow.getTime();
-        } else {
-            // Duration is in minutes
-            const minutes = parseInt(duration, 10);
-            return now.getTime() + minutes * 60 * 1000;
-        }
+        const minutes = parseInt(duration, 10);
+        return Date.now() + minutes * 60 * 1000;
     }
 
     // Helper function to calculate countdown duration based on snooze time
+    // Higher durations = exponentially more punishing countdowns
     function getCountdownDuration(snoozeDuration) {
-        if (snoozeDuration === "15") return 15; // 15 seconds for 15 minutes
-        if (snoozeDuration === "60") return 60; // 60 seconds for 1 hour
-        if (snoozeDuration === "240") return 240; // 240 seconds (4 minutes) for 4 hours
-        if (snoozeDuration === "tomorrow") return 300; // 300 seconds (5 minutes) for tomorrow
-        return 15; // Default fallback
+        if (snoozeDuration === "5") return 10; // 10 seconds for 5 minutes
+        if (snoozeDuration === "15") return 30; // 30 seconds for 15 minutes
+        if (snoozeDuration === "60") return 180; // 3 minutes for 1 hour
+        if (snoozeDuration === "240") return 480; // 8 minutes for 4 hours
+        return 10; // Default fallback
     }
 
     // Helper function to get snooze duration display text
     function getSnoozeDurationText(duration) {
+        if (duration === "5") return "5 minutes";
         if (duration === "15") return "15 minutes";
         if (duration === "60") return "1 hour";
         if (duration === "240") return "4 hours";
-        if (duration === "tomorrow") return "until tomorrow";
         return duration;
     }
 
     // Helper function to handle snooze selection with countdown
     function handleSnoozeSelection(featureType, duration) {
-        // Handle backward compatibility - if first param is duration string, shift params
-        if (typeof featureType === "string" && !duration) {
-            duration = featureType;
-            featureType = "home";
-        }
-
         const countdownSeconds = getCountdownDuration(duration);
         const durationText = getSnoozeDurationText(duration);
 
@@ -374,7 +291,7 @@
         const countdownMessage = countdownDialog.querySelector(".countdown-message");
 
         dialogTitle.textContent = `Snoozing for ${durationText}...`;
-        countdownMessage.textContent = `Disabling focus redirect for ${durationText}.`;
+        countdownMessage.textContent = `Pausing your focus redirect for ${durationText}.`;
 
         // Show countdown before applying snooze
         showCountdownDialog(
@@ -597,12 +514,12 @@
                                 countdownDialog.querySelector(".countdown-message");
 
                             // Ensure dialog has correct text for permanent disable
-                            dialogTitle.textContent = "Disabling in...";
+                            dialogTitle.textContent = "Permanently disabling in...";
                             countdownMessage.textContent =
-                                "Take a deep breath and reconsider. This will disable your focus feature.";
+                                "You're about to remove your focus protection entirely.";
 
                             showCountdownDialog(
-                                5, // 5 second countdown for permanent disable
+                                600, // 10 minute countdown for permanent disable
                                 () => {
                                     // Countdown completed - proceed with permanent disable
                                     toggleElement.checked = false;
@@ -625,13 +542,10 @@
                     toggleElement.checked = true;
                 }
             );
-        } else {
-            // User is enabling - no friction needed
-            save();
         }
     }
 
-    // Handle home redirect toggle with friction (wrapper for backward compatibility)
+    // Handle home redirect toggle with friction
     function handleHomeRedirectToggle(e) {
         handleRedirectToggle("home", $homeRedirect, e);
     }
@@ -694,7 +608,7 @@
         }
     }
 
-    // Placeholder function for explore snooze status indicator (will be implemented in later task)
+    // Explore snooze status indicator
     function updateExploreSnoozeStatusIndicator() {
         const exploreSnoozeStatus = q("#exploreSnoozeStatus");
         if (!exploreSnoozeStatus) return; // Element doesn't exist yet
@@ -781,6 +695,29 @@
     // Add explore redirect event listener if element exists
     if ($exploreRedirect) {
         $exploreRedirect.addEventListener("change", handleExploreRedirectToggle);
+    }
+
+    // Listen for storage changes from the background script (e.g., snooze expiration)
+    // Without this, the popup shows stale state when the background re-enables a feature
+    try {
+        chrome.storage.onChanged?.addListener((changes, area) => {
+            if (area === "sync") {
+                if (changes.homeRedirect) {
+                    $homeRedirect.checked = !!changes.homeRedirect.newValue;
+                }
+                if (changes.exploreRedirect && $exploreRedirect) {
+                    $exploreRedirect.checked = !!changes.exploreRedirect.newValue;
+                }
+                if (changes.snoozeEndTime) {
+                    updateSnoozeStatusIndicator();
+                }
+                if (changes.exploreSnoozeEndTime) {
+                    updateExploreSnoozeStatusIndicator();
+                }
+            }
+        });
+    } catch (e) {
+        // Ignore storage listener errors
     }
 
     document.addEventListener("DOMContentLoaded", () => {

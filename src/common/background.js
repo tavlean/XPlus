@@ -6,13 +6,8 @@ const storageDefaults = {
     notifications: true,
     homeRedirect: false,
     exploreRedirect: false,
-    // Friction data fields for home redirect
     snoozeEndTime: null,
-    disableAttempts: 0,
-    lastAttemptDate: null,
-    // Friction data fields for explore redirect
     exploreSnoozeEndTime: null,
-    exploreDisableAttempts: 0,
 };
 
 // Helper functions for safe storage operations
@@ -139,7 +134,7 @@ function showSnoozeExpirationNotification(featureType = "home") {
 
             chrome.notifications.create(notificationId, {
                 type: "basic",
-                iconUrl: "../shared-assets/icon48.png", // Corrected icon path
+                iconUrl: "assets/icon48.png",
                 title: "XPlus Focus Feature Re-enabled",
                 message: `Your ${featureName} feature is now active again to help maintain your focus.`,
                 silent: false, // Brief, non-intrusive notification
