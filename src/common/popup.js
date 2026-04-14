@@ -137,10 +137,10 @@
         if (!message) {
             if (featureType === "home") {
                 message =
-                    "The Home Redirect feature helps maintain your focus by redirecting you to your bookmarks instead of distracting social feeds. Are you sure you want to disable this productivity feature?";
+                    "This keeps you focused by redirecting to bookmarks. Disable it?";
             } else if (featureType === "explore") {
                 message =
-                    "The Explore Redirect feature helps maintain your focus by redirecting you away from trending content and discovery feeds. Are you sure you want to disable this productivity feature?";
+                    "This keeps you focused by redirecting away from trending content. Disable it?";
             }
         }
 
@@ -374,7 +374,7 @@
         const countdownMessage = countdownDialog.querySelector(".countdown-message");
 
         dialogTitle.textContent = `Snoozing for ${durationText}...`;
-        countdownMessage.textContent = `Take a moment to reconsider. This will disable your focus feature for ${durationText}.`;
+        countdownMessage.textContent = `Disabling focus redirect for ${durationText}.`;
 
         // Show countdown before applying snooze
         showCountdownDialog(
@@ -418,7 +418,7 @@
                 // Reset dialog title and message for future permanent disable use
                 dialogTitle.textContent = "Disabling in...";
                 countdownMessage.textContent =
-                    "Take a deep breath and reconsider. This will disable your focus feature.";
+                    "This will disable your focus redirect.";
             },
             () => {
                 // User cancelled countdown - keep it enabled
@@ -433,7 +433,7 @@
                 // Reset dialog title and message
                 dialogTitle.textContent = "Disabling in...";
                 countdownMessage.textContent =
-                    "Take a deep breath and reconsider. This will disable your focus feature.";
+                    "This will disable your focus redirect.";
             }
         );
     }
