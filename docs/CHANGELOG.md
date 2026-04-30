@@ -12,6 +12,10 @@ All notable changes to XPlus will be documented in this file.
 -   **Dynamic Focus State**: Popup now shows a current pattern state with 3-hour, 24-hour, and 7-day break context.
     -   Visible states include Steady, Building, Frequent checks, and High pull.
     -   The popup shows short contextual notes when recent behavior suggests a loop or healthy spacing.
+-   **Adaptive Countdown Prompts**: Waiting periods now rotate brief prompts based on the actual countdown length.
+    -   Short waits show simple breath or attention-shift prompts.
+    -   Longer waits can suggest standing up, getting water, walking briefly, or reconsidering whether the break is still needed.
+    -   Prompt timing is based on the wait duration after adaptive friction is applied, not the selected break duration.
 
 ### Changed
 

@@ -69,14 +69,29 @@ So XPlus tracks the elapsed time while protection is actually snoozed:
 - If the user turns protection back on early, it counts only the time used.
 - If the countdown is cancelled before the snooze starts, it counts nothing.
 
+## What To Do During The Wait
+
+The countdown is not only a delay. It is a small window for state change. Research on just-in-time adaptive interventions suggests that support is more useful when it is matched to the current moment and low enough in effort that the user can actually do it.
+
+XPlus uses the waiting time, not the selected break length, to decide what kind of prompt to show. That matters because adaptive friction can turn a short break into a longer wait when recent behavior suggests higher risk.
+
+The prompts should stay short and practical:
+
+- Short waits: one breath, relax the jaw, look away from the screen.
+- Medium waits: stand up, take three breaths, name what comes after the break.
+- Longer waits: get water, walk briefly, stretch, decide what would make the break worth it.
+- Very long waits: step away, write down the avoided task, or cancel if it is only momentum.
+
+The prompt should not appear instantly. The original countdown message gets a few seconds first, then prompts rotate based on the available time. This avoids making the interface feel noisy while still giving the user something useful to do with the pause.
+
 ## Tone Guidelines
 
 The focus copy should be direct, calm, and non-shaming.
 
 Good:
-- "You have already taken a short break recently."
-- "This may be turning into a loop. Consider closing X after this."
-- "This pause is here to help you choose intentionally."
+- "Quick checks are stacking up. Pause before reopening the feed."
+- "Take one slow breath."
+- "If this is just momentum, cancel and keep the guard on."
 
 Avoid:
 - Calling the user weak, addicted, lazy, or out of control.
