@@ -2,6 +2,24 @@
 
 All notable changes to XPlus will be documented in this file.
 
+## [1.7.0] - 2026-05-01
+
+### Added
+
+-   **Risk-State Adaptive Friction**: Break friction now looks at behavioral pattern, not only total time.
+    -   Uses 24-hour break time, 3-hour break time, number of recent break starts, repeated 5-minute requests, and spacing since the last break.
+    -   Treats repeated short breaks close together as a stronger sign of a checking loop than well-spaced intentional breaks.
+-   **Dynamic Focus State**: Popup now shows a current pattern state with 3-hour, 24-hour, and 7-day break context.
+    -   States include Steady, Watchful, Checking loop, and High friction.
+    -   The popup shows short contextual notes when recent behavior suggests a loop or healthy spacing.
+
+### Changed
+
+-   **Focus Copy Pass**: Renamed focus controls around guards rather than redirects, softened dialog language, and made countdown copy more intentional.
+-   **Interaction Tone**: Reduced pulsing and sharpened motion/easing so the popup feels calmer and less alarm-like.
+
+---
+
 ## [1.6.0] - 2026-04-30
 
 ### Added

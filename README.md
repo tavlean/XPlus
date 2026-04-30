@@ -11,7 +11,7 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
     -   Gentle confirmation before disabling productivity features
     -   Snooze options (5 min, 15 min, 30 min, 1 hour) instead of permanent disable
     -   Automatic re-enable when snooze period expires
-    -   Adaptive waiting based on actual break time used in the last 24 hours
+    -   Adaptive waiting based on recent break patterns, repeated quick checks, and actual break time used
 -   Seamless Experience: Works with dynamically loaded content and SPA navigation
 -   Selective Impact: Only affects specific links and pages, leaving other functionality unchanged
 -   Lightweight and Efficient: Minimal resource usage with robust error handling
@@ -85,7 +85,8 @@ Click the extension icon to open the popup and manage features:
     -   Confirmation dialog with productivity reminder
     -   Snooze options for temporary disable (5 min, 15 min, 30 min, 1 hour)
     -   Automatic re-enable when snooze expires
-    -   Adaptive friction for repeated break time, based on actual elapsed snooze time
+    -   Adaptive friction for repeated quick checks and recent break time
+    -   Dynamic focus state showing whether the current pattern is steady, watchful, or loop-like
 
 The thinking behind the focus features is documented in
 [Focus Friction Philosophy](docs/FOCUS_FRICTION_PHILOSOPHY.md).

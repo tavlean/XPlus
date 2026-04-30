@@ -38,12 +38,22 @@ Reference:
 
 The goal is to create a pause, not a punishment. If friction grows too aggressively, the user may feel trapped, disable the extension, or look for a workaround. That would defeat the purpose.
 
-The current model uses stepped increases:
+The current model uses a risk-state score instead of raw time alone. It looks at:
 
-- Less than 15 minutes used in the last 24 hours: normal waiting time.
-- 15 to 29 minutes: 1.5x waiting time.
-- 30 to 59 minutes: 2x waiting time.
-- 60 minutes or more: 3x waiting time, capped at 10 minutes.
+- Actual break time in the last 24 hours.
+- Actual break time in the last 3 hours.
+- How many breaks started in the last 3 hours.
+- Whether the user repeatedly chose 5-minute breaks.
+- Whether the last break ended very recently or was well spaced.
+
+This matters because repeated 5-minute breaks close together are more likely to represent a checking loop than one 15-minute break followed by another break several hours later.
+
+The score maps to stepped states:
+
+- Steady: normal waiting time.
+- Watchful: 1.5x waiting time.
+- Checking loop: 2x waiting time.
+- High friction: 3x waiting time, capped at 10 minutes.
 
 This is intentionally firm but bounded. It says, "Something is happening here; slow down," without turning the extension into an adversary.
 
