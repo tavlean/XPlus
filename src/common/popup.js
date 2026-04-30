@@ -870,16 +870,12 @@
     function updateBreakReport() {
         const focusState = q("#focusState");
         const focusStateLabel = q("#focusStateLabel");
-        const focusStateMessage = q("#focusStateMessage");
-        const focusLoopNote = q("#focusLoopNote");
         const breakTime3h = q("#breakTime3h");
         const breakTime24h = q("#breakTime24h");
         const breakTime7d = q("#breakTime7d");
         if (
             !focusState ||
             !focusStateLabel ||
-            !focusStateMessage ||
-            !focusLoopNote ||
             !breakTime3h ||
             !breakTime24h ||
             !breakTime7d
@@ -891,23 +887,9 @@
             const frictionState = getFrictionState(stats);
             focusState.dataset.state = frictionState.key;
             focusStateLabel.textContent = frictionState.label;
-            focusStateMessage.textContent = frictionState.reportMessage;
             breakTime3h.textContent = formatBreakTotal(stats.last3hMs);
             breakTime24h.textContent = formatBreakTotal(stats.last24hMs);
             breakTime7d.textContent = formatBreakTotal(stats.last7dMs);
-
-            if (stats.last3hShortBreakStarts >= 2) {
-                focusLoopNote.textContent = `${stats.last3hShortBreakStarts} quick breaks in 3h. This is the pattern XPlus slows down.`;
-                focusLoopNote.style.display = "block";
-            } else if (stats.last3hBreakStarts >= 2) {
-                focusLoopNote.textContent = `${stats.last3hBreakStarts} breaks in 3h. Space between breaks keeps friction lower.`;
-                focusLoopNote.style.display = "block";
-            } else if (stats.minutesSinceLastBreak !== null && stats.minutesSinceLastBreak >= 180) {
-                focusLoopNote.textContent = "Breaks are well spaced. Friction stays lighter.";
-                focusLoopNote.style.display = "block";
-            } else {
-                focusLoopNote.style.display = "none";
-            }
         });
     }
 
