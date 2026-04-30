@@ -60,16 +60,27 @@
                     </div>
                 </div>
 
-                <div class="break-report" id="breakReport">
-                    <div class="break-report-row">
-                        <span>Break time last 24h</span>
-                        <strong id="breakTime24h">0m</strong>
+                <div class="focus-state" id="focusState">
+                    <div class="focus-state-header">
+                        <span class="focus-state-kicker">Current pattern</span>
+                        <strong id="focusStateLabel">Steady</strong>
                     </div>
-                    <div class="break-report-row">
-                        <span>Break time last 7d</span>
-                        <strong id="breakTime7d">0m</strong>
+                    <p id="focusStateMessage">Protection is ready. Break friction is at baseline.</p>
+                    <div class="focus-metrics">
+                        <div class="focus-metric">
+                            <span>Last 3h</span>
+                            <strong id="breakTime3h">0m</strong>
+                        </div>
+                        <div class="focus-metric">
+                            <span>24h</span>
+                            <strong id="breakTime24h">0m</strong>
+                        </div>
+                        <div class="focus-metric">
+                            <span>7d</span>
+                            <strong id="breakTime7d">0m</strong>
+                        </div>
                     </div>
-                    <div class="break-report-tier" id="breakFrictionTier" style="display: none"></div>
+                    <div class="focus-loop-note" id="focusLoopNote" style="display: none"></div>
                 </div>
             </section>
 

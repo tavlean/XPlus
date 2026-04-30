@@ -173,35 +173,93 @@ h1 {
     font-weight: 500;
 }
 
-.break-report {
+.focus-state {
     margin: 10px 0 14px;
-    padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.035);
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.032);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
+    transition: border-color 0.25s ease, background 0.25s ease;
 }
 
-.break-report-row {
+.focus-state[data-state="watchful"] {
+    background: rgba(212, 175, 55, 0.06);
+    border-color: rgba(212, 175, 55, 0.22);
+}
+
+.focus-state[data-state="loop"],
+.focus-state[data-state="high"] {
+    background: rgba(190, 117, 68, 0.08);
+    border-color: rgba(190, 117, 68, 0.28);
+}
+
+.focus-state-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.5;
+    margin-bottom: 6px;
 }
 
-.break-report-row strong {
+.focus-state-kicker {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.focus-state-header strong {
     color: var(--text);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 }
 
-.break-report-tier {
-    margin-top: 8px;
+.focus-state p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.focus-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.focus-metric {
+    padding: 7px 8px;
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+}
+
+.focus-metric span,
+.focus-metric strong {
+    display: block;
+}
+
+.focus-metric span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.focus-metric strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 650;
+    margin-top: 2px;
+}
+
+.focus-loop-note {
+    margin-top: 10px;
     padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    color: #d4af37;
+    color: #d8b86a;
     font-size: 12px;
     line-height: 1.4;
 }

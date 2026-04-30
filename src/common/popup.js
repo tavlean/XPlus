@@ -16,24 +16,28 @@
     };
     const FRICTION_STATES = {
         steady: {
+            key: "steady",
             label: "Steady",
             multiplier: 1,
             message: "Pausing focus redirect for an intentional break.",
             reportMessage: "Protection is ready. Break friction is at baseline.",
         },
         watchful: {
+            key: "watchful",
             label: "Watchful",
             multiplier: 1.5,
             message: "You have already taken a short break recently. Take a breath before continuing.",
             reportMessage: "Recent break time is building. The next pause will be a little slower.",
         },
         loop: {
+            key: "loop",
             label: "Checking loop",
             multiplier: 2,
             message: "This looks like a quick-check loop. Pause before reopening the feed.",
             reportMessage: "Repeated recent breaks detected. XPlus will add stronger friction now.",
         },
         high: {
+            key: "high",
             label: "High friction",
             multiplier: 3,
             message:
@@ -862,21 +866,45 @@
     }
 
     function updateBreakReport() {
+        const focusState = q("#focusState");
+        const focusStateLabel = q("#focusStateLabel");
+        const focusStateMessage = q("#focusStateMessage");
+        const focusLoopNote = q("#focusLoopNote");
+        const breakTime3h = q("#breakTime3h");
         const breakTime24h = q("#breakTime24h");
         const breakTime7d = q("#breakTime7d");
-        const breakFrictionTier = q("#breakFrictionTier");
-        if (!breakTime24h || !breakTime7d || !breakFrictionTier) return;
+        if (
+            !focusState ||
+            !focusStateLabel ||
+            !focusStateMessage ||
+            !focusLoopNote ||
+            !breakTime3h ||
+            !breakTime24h ||
+            !breakTime7d
+        ) {
+            return;
+        }
 
         getBreakStats((stats) => {
             const frictionState = getFrictionState(stats);
+            focusState.dataset.state = frictionState.key;
+            focusStateLabel.textContent = frictionState.label;
+            focusStateMessage.textContent = frictionState.reportMessage;
+            breakTime3h.textContent = formatBreakTotal(stats.last3hMs);
             breakTime24h.textContent = formatBreakTotal(stats.last24hMs);
             breakTime7d.textContent = formatBreakTotal(stats.last7dMs);
 
-            if (frictionState.multiplier > 1) {
-                breakFrictionTier.textContent = frictionState.label;
-                breakFrictionTier.style.display = "block";
+            if (stats.last3hShortBreakStarts >= 2) {
+                focusLoopNote.textContent = `${stats.last3hShortBreakStarts} quick breaks in 3h. This is the pattern XPlus slows down.`;
+                focusLoopNote.style.display = "block";
+            } else if (stats.last3hBreakStarts >= 2) {
+                focusLoopNote.textContent = `${stats.last3hBreakStarts} breaks in 3h. Space between breaks keeps friction lower.`;
+                focusLoopNote.style.display = "block";
+            } else if (stats.minutesSinceLastBreak !== null && stats.minutesSinceLastBreak >= 180) {
+                focusLoopNote.textContent = "Breaks are well spaced. Friction stays lighter.";
+                focusLoopNote.style.display = "block";
             } else {
-                breakFrictionTier.style.display = "none";
+                focusLoopNote.style.display = "none";
             }
         });
     }
