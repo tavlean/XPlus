@@ -2,6 +2,23 @@
 
 All notable changes to XPlus will be documented in this file.
 
+## [1.6.0] - 2026-04-30
+
+### Added
+
+-   **Adaptive Focus Break Friction**: Break requests now use actual elapsed snooze time across Home and Explore to increase waiting friction after repeated recent breaks.
+    -   Tracks active break sessions locally and finalizes actual used time when protection is re-enabled early or the snooze expires.
+    -   Adds compact popup reporting for break time used in the last 24 hours and last 7 days.
+    -   Uses stepped waiting tiers after 15, 30, and 60 minutes of actual break time in the last 24 hours.
+-   **Focus Friction Philosophy Doc**: Added `docs/FOCUS_FRICTION_PHILOSOPHY.md` as a plain-language reference for the product philosophy and research behind focus friction.
+
+### Changed
+
+-   **Snooze Options**: Updated focus break choices to 5 minutes, 15 minutes, 30 minutes, and 1 hour.
+-   **Permanent Disable Placement**: Moved permanent protection removal behind a less prominent Advanced area while keeping the existing 10 minute countdown.
+
+---
+
 ## [1.4.0] - 2025-01-26
 
 ### Added - Detailed Changelog

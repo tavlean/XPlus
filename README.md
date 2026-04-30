@@ -9,8 +9,9 @@ A cross-browser extension that automatically opens X/Twitter post links and noti
 -   Focus-Friendly Home Redirect: Redirects feed (/home) to bookmarks automatically to reduce distractions
 -   Thoughtful Settings Control: Enhanced popup with organized sections and smart friction for focus features
     -   Gentle confirmation before disabling productivity features
-    -   Snooze options (15 min, 1 hour, 4 hours, until tomorrow) instead of permanent disable
+    -   Snooze options (5 min, 15 min, 30 min, 1 hour) instead of permanent disable
     -   Automatic re-enable when snooze period expires
+    -   Adaptive waiting based on actual break time used in the last 24 hours
 -   Seamless Experience: Works with dynamically loaded content and SPA navigation
 -   Selective Impact: Only affects specific links and pages, leaving other functionality unchanged
 -   Lightweight and Efficient: Minimal resource usage with robust error handling
@@ -82,9 +83,12 @@ Click the extension icon to open the popup and manage features:
 
 -   Home Redirect: redirect /home to /i/bookmarks with thoughtful disable protection
     -   Confirmation dialog with productivity reminder
-    -   Snooze options for temporary disable (15 min, 1 hour, 4 hours, until tomorrow)
+    -   Snooze options for temporary disable (5 min, 15 min, 30 min, 1 hour)
     -   Automatic re-enable when snooze expires
-    -   Smart friction reduction for multiple daily attempts
+    -   Adaptive friction for repeated break time, based on actual elapsed snooze time
+
+The thinking behind the focus features is documented in
+[Focus Friction Philosophy](docs/FOCUS_FRICTION_PHILOSOPHY.md).
 
 ### Project Structure
 
