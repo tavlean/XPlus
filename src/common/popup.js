@@ -14,6 +14,36 @@
         30: { minutes: 30, label: "30 minutes", baseWaitSeconds: 60 },
         60: { minutes: 60, label: "1 hour", baseWaitSeconds: 180 },
     };
+    const COUNTDOWN_PROMPTS = {
+        short: [
+            "Take one slow breath.",
+            "Relax your jaw and shoulders.",
+            "Look away from the screen for a moment.",
+            "Ask: do I still want this break?",
+            "Let the urge pass for one breath.",
+        ],
+        medium: [
+            "Stand up while this finishes.",
+            "Take three slow breaths.",
+            "Look at something across the room.",
+            "Name what you came here to do after this.",
+            "Put both feet on the floor.",
+        ],
+        long: [
+            "Get a glass of water.",
+            "Walk around for a minute.",
+            "Stretch your neck and shoulders.",
+            "Decide what would make this break worth it.",
+            "Put the phone or trackpad down until the timer ends.",
+        ],
+        extended: [
+            "Step away from the screen for two minutes.",
+            "Get water, then come back and decide again.",
+            "Take a short walk before opening the feed.",
+            "Write down the task you are avoiding.",
+            "If this is just momentum, cancel and keep the guard on.",
+        ],
+    };
     const FRICTION_STATES = {
         steady: {
             key: "steady",
@@ -388,15 +418,43 @@
         });
     }
 
+    function getCountdownPromptPool(seconds) {
+        if (seconds < 25) return COUNTDOWN_PROMPTS.short;
+        if (seconds < 60) return COUNTDOWN_PROMPTS.medium;
+        if (seconds < 180) return COUNTDOWN_PROMPTS.long;
+        return COUNTDOWN_PROMPTS.extended;
+    }
+
+    function getPromptCount(seconds) {
+        if (seconds < 25) return 1;
+        if (seconds < 60) return 2;
+        if (seconds < 180) return 3;
+        return 4;
+    }
+
+    function getCountdownPrompts(seconds) {
+        const pool = getCountdownPromptPool(seconds);
+        const promptCount = Math.min(getPromptCount(seconds), pool.length);
+        const startIndex = Math.floor(Date.now() / 1000) % pool.length;
+        return Array.from(
+            { length: promptCount },
+            (_, index) => pool[(startIndex + index) % pool.length]
+        );
+    }
+
     // Countdown dialog functions
-    function showCountdownDialog(seconds, onComplete, onCancel) {
+    function showCountdownDialog(seconds, onComplete, onCancel, prompts = []) {
         const dialog = q("#countdownDialog");
         const countdownNumber = q("#countdownNumber");
         const countdownLabel = q(".countdown-label");
+        const countdownMessage = q(".countdown-message");
         const cancelBtn = q("#countdownCancel");
 
         let currentSeconds = seconds;
         let countdownInterval;
+        let promptIndex = -1;
+        const promptDelay = seconds < 20 ? 3 : 5;
+        const promptInterval = prompts.length > 0 ? Math.max(8, Math.floor(seconds / prompts.length)) : seconds;
 
         // Format the countdown display (mm:ss for 60+, raw number for <60)
         function formatCountdown(secs) {
@@ -411,10 +469,31 @@
             }
         }
 
+        function updatePrompt() {
+            if (!countdownMessage || prompts.length === 0) return;
+
+            const elapsedSeconds = seconds - currentSeconds;
+            if (elapsedSeconds < promptDelay) return;
+
+            const nextPromptIndex = Math.min(
+                prompts.length - 1,
+                Math.floor((elapsedSeconds - promptDelay) / promptInterval)
+            );
+
+            if (nextPromptIndex !== promptIndex) {
+                promptIndex = nextPromptIndex;
+                countdownMessage.textContent = prompts[promptIndex];
+                countdownMessage.classList.remove("countdown-message-fade");
+                void countdownMessage.offsetWidth;
+                countdownMessage.classList.add("countdown-message-fade");
+            }
+        }
+
         // Cleanup all listeners and intervals
         function cleanup() {
             clearInterval(countdownInterval);
             dialog.style.display = "none";
+            countdownMessage?.classList.remove("countdown-message-fade");
             cancelBtn.removeEventListener("click", handleCancel);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         }
@@ -422,6 +501,7 @@
         // Update countdown display
         function updateCountdown() {
             formatCountdown(currentSeconds);
+            updatePrompt();
 
             if (currentSeconds <= 0) {
                 cleanup();
@@ -585,7 +665,8 @@
                     dialogTitle.textContent = "Pause before opening";
                     countdownMessage.textContent =
                         "This pause gives the intentional part of you time to catch up.";
-                }
+                },
+                getCountdownPrompts(countdownSeconds)
             );
         });
     }
@@ -772,7 +853,8 @@
                                 () => {
                                     // User cancelled countdown - keep it enabled
                                     toggleElement.checked = true;
-                                }
+                                },
+                                getCountdownPrompts(600)
                             );
                         },
                         () => {
