@@ -268,10 +268,10 @@
         if (!message) {
             if (featureType === "home") {
                 message =
-                    "The Home guard keeps the feed one step away. Choose a timed break instead of removing it.";
+                    "The Home guard keeps the feed one step away. Take a timed break if you need it.";
             } else if (featureType === "explore") {
                 message =
-                    "The Explore guard blocks trending loops. Choose a timed break instead of removing it.";
+                    "The Explore guard blocks trending loops. Take a timed break if you need it.";
             }
         }
 
@@ -508,7 +508,7 @@
             countdownMessage.textContent =
                 frictionState.multiplier > 1
                     ? frictionState.message
-                    : `Taking an intentional ${durationText} break.`;
+                    : `Opening the guard for ${durationText}.`;
 
             // Show countdown before applying snooze
             showCountdownDialog(
