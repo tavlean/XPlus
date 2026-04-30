@@ -28,8 +28,8 @@
                         <span class="slider"></span>
                     </label>
                     <div class="label-text">
-                        <div class="title">Home Redirect</div>
-                        <div class="desc">Redirects feed to bookmarks</div>
+                        <div class="title">Home Feed Guard</div>
+                        <div class="desc">Moves the feed out of reach</div>
                     </div>
                 </div>
 
@@ -46,8 +46,8 @@
                         <span class="slider"></span>
                     </label>
                     <div class="label-text">
-                        <div class="title">Explore Redirect</div>
-                        <div class="desc">Redirects Explore to bookmarks</div>
+                        <div class="title">Explore Guard</div>
+                        <div class="desc">Blocks trending loops</div>
                     </div>
                 </div>
 
@@ -98,7 +98,7 @@
                     </label>
                     <div class="label-text">
                         <div class="title">Posts</div>
-                        <div class="desc">Post timestamps open in new tab</div>
+                        <div class="desc">Open timestamps separately</div>
                     </div>
                 </div>
 
@@ -109,7 +109,7 @@
                     </label>
                     <div class="label-text">
                         <div class="title">Notifications</div>
-                        <div class="desc">Opens in new tab</div>
+                        <div class="desc">Open notifications separately</div>
                     </div>
                 </div>
             </section>
@@ -120,19 +120,19 @@
             <div class="dialog-content">
                 <div class="dialog-header">
                     <span class="dialog-icon">⚠️</span>
-                    <h3 class="dialog-title" id="dialogTitle">Disable Home Redirect?</h3>
+                    <h3 class="dialog-title" id="dialogTitle">Take a feed break?</h3>
                 </div>
                 <div class="dialog-body">
                     <p class="dialog-message">
-                        This keeps you focused by redirecting your feed to bookmarks. Are you sure you want to disable it?
+                        This guard keeps the feed one step away. Choose a timed break instead of removing it.
                     </p>
                 </div>
                 <div class="dialog-actions">
                     <button class="dialog-btn dialog-btn-cancel" id="confirmCancel">
-                        Keep Enabled
+                        Keep Guard On
                     </button>
                     <button class="dialog-btn dialog-btn-confirm" id="confirmProceed">
-                        Yes, Disable
+                        Choose Break
                     </button>
                 </div>
             </div>
@@ -143,28 +143,28 @@
             <div class="dialog-content snooze-content">
                 <div class="dialog-header">
                     <span class="dialog-icon">⏰</span>
-                    <h3 class="dialog-title">Snooze for how long?</h3>
+                    <h3 class="dialog-title">Choose an intentional break</h3>
                 </div>
                 <div class="dialog-body">
                     <p class="dialog-message">
-                        Take a temporary break — it'll turn back on automatically.
+                        XPlus will restore the guard automatically. Short, spaced breaks keep friction lighter.
                     </p>
                     <div class="snooze-options">
                         <button class="snooze-option" data-duration="5">
                             <span class="snooze-time">5 minutes</span>
-                            <span class="snooze-desc">Quick peek</span>
+                            <span class="snooze-desc">Quick check</span>
                         </button>
                         <button class="snooze-option" data-duration="15">
                             <span class="snooze-time">15 minutes</span>
-                            <span class="snooze-desc">Short break</span>
+                            <span class="snooze-desc">Reset</span>
                         </button>
                         <button class="snooze-option" data-duration="30">
                             <span class="snooze-time">30 minutes</span>
-                            <span class="snooze-desc">Longer reset</span>
+                            <span class="snooze-desc">Planned pause</span>
                         </button>
                         <button class="snooze-option" data-duration="60">
                             <span class="snooze-time">1 hour</span>
-                            <span class="snooze-desc">Extended break</span>
+                            <span class="snooze-desc">Deep break</span>
                         </button>
                     </div>
                     <div class="permanent-option">
@@ -180,14 +180,14 @@
                         </button>
                         <div class="advanced-options" id="advancedOptions" hidden>
                             <button class="permanent-disable-btn" id="permanentDisable">
-                                Permanently remove protection
+                                Permanently remove guard
                             </button>
                         </div>
                     </div>
                 </div>
                 <div class="dialog-actions">
                     <button class="dialog-btn dialog-btn-cancel" id="snoozeCancel">
-                        Keep Enabled
+                        Keep Guard On
                     </button>
                 </div>
             </div>
@@ -198,7 +198,7 @@
             <div class="dialog-content countdown-content">
                 <div class="dialog-header">
                     <span class="dialog-icon countdown-icon">⏱️</span>
-                    <h3 class="dialog-title">Disabling in...</h3>
+                    <h3 class="dialog-title">Pause before opening</h3>
                 </div>
                 <div class="dialog-body">
                     <div class="countdown-display">
@@ -206,7 +206,7 @@
                         <span class="countdown-label">seconds</span>
                     </div>
                     <p class="countdown-message">
-                        This will disable your focus redirect.
+                        This pause gives the intentional part of you time to catch up.
                     </p>
                 </div>
                 <div class="dialog-actions">

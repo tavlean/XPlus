@@ -3,8 +3,11 @@
     --panel: #111218;
     --text: #e6e6e6;
     --muted: #a6a6a6;
-    --accent: #2563eb;
+    --accent: #2f6f8f;
+    --accent-strong: #3a8fb8;
     --border: #1f2130;
+    --focus-warm: #d4af37;
+    --focus-urgent: #be7544;
 }
 * {
     box-sizing: border-box;
@@ -26,8 +29,8 @@ body {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
         var(--panel);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.34);
 }
 header {
     margin-bottom: 16px;
@@ -105,8 +108,8 @@ h1 {
     padding: 10px 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    transition: background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
     cursor: pointer;
     position: relative;
     margin-bottom: 8px;
@@ -115,7 +118,7 @@ h1 {
 .option:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
 }
 
 .label-text {
@@ -150,8 +153,8 @@ h1 {
 .snooze-status {
     margin-top: 8px;
     padding: 8px 12px;
-    background: rgba(212, 175, 55, 0.08);
-    border: 1px solid rgba(212, 175, 55, 0.25);
+    background: rgba(212, 175, 55, 0.07);
+    border: 1px solid rgba(212, 175, 55, 0.22);
     border-radius: 8px;
     animation: fadeIn 0.3s ease;
 }
@@ -161,12 +164,12 @@ h1 {
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #d4af37;
+    color: var(--focus-warm);
 }
 
 .snooze-icon {
     font-size: 14px;
-    animation: pulse 2s infinite;
+    animation: none;
 }
 
 .snooze-text {
@@ -306,7 +309,7 @@ h1 {
 
 .switch input:checked + .slider {
     background: var(--accent);
-    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 0 8px rgba(47, 111, 143, 0.24);
 }
 
 .switch input:checked + .slider:before {
@@ -343,13 +346,13 @@ h1 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.74);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeIn 0.2s ease;
+    animation: fadeIn 0.22s ease;
     padding: 20px;
     box-sizing: border-box;
 }
@@ -357,13 +360,13 @@ h1 {
 .dialog-content {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 14px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
     max-width: 320px;
     max-height: calc(100vh - 40px);
     width: 90%;
     padding: 20px;
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
     overflow-y: auto;
     box-sizing: border-box;
 }
@@ -377,7 +380,7 @@ h1 {
 
 .dialog-icon {
     font-size: 22px;
-    filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.4));
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.25));
 }
 
 .dialog-title {
@@ -424,9 +427,9 @@ h1 {
 }
 
 .dialog-btn-cancel:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+    box-shadow: 0 4px 12px rgba(47, 111, 143, 0.28);
 }
 
 .dialog-btn-confirm {
@@ -472,9 +475,9 @@ h1 {
 .countdown-number {
     font-size: 48px;
     font-weight: 700;
-    color: #d4af37;
-    text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
-    animation: countdownPulse 1s infinite;
+    color: var(--focus-warm);
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.22);
+    animation: countdownPulse 1.8s ease-in-out infinite;
     line-height: 1;
 }
 
@@ -538,9 +541,9 @@ h1 {
     padding: 12px 8px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     font-family: inherit;
     color: var(--text);
     min-height: 60px;
@@ -550,7 +553,7 @@ h1 {
 .snooze-option:hover {
     background: rgba(212, 175, 55, 0.08);
     border-color: rgba(212, 175, 55, 0.25);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.12);
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.1);
 }
 
 .snooze-option:active {
@@ -571,7 +574,7 @@ h1 {
 }
 
 .snooze-option:hover .snooze-time {
-    color: #d4af37;
+    color: var(--focus-warm);
 }
 
 .snooze-option:hover .snooze-desc {

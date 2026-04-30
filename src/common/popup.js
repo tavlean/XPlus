@@ -19,7 +19,7 @@
             key: "steady",
             label: "Steady",
             multiplier: 1,
-            message: "Pausing focus redirect for an intentional break.",
+            message: "Opening the guard for an intentional break.",
             reportMessage: "Protection is ready. Break friction is at baseline.",
         },
         watchful: {
@@ -259,19 +259,19 @@
 
         // Set feature-specific title
         if (featureType === "home") {
-            titleEl.textContent = "Disable Home Redirect?";
+            titleEl.textContent = "Take a Home break?";
         } else if (featureType === "explore") {
-            titleEl.textContent = "Disable Explore Redirect?";
+            titleEl.textContent = "Take an Explore break?";
         }
 
         // Set feature-specific message if not provided
         if (!message) {
             if (featureType === "home") {
                 message =
-                    "This keeps you focused by redirecting your feed to bookmarks. Are you sure you want to disable it?";
+                    "The Home guard keeps the feed one step away. Choose a timed break instead of removing it.";
             } else if (featureType === "explore") {
                 message =
-                    "This keeps you focused by redirecting away from trending content. Are you sure you want to disable it?";
+                    "The Explore guard blocks trending loops. Choose a timed break instead of removing it.";
             }
         }
 
@@ -504,11 +504,11 @@
             const dialogTitle = countdownDialog.querySelector(".dialog-title");
             const countdownMessage = countdownDialog.querySelector(".countdown-message");
 
-            dialogTitle.textContent = `Snoozing for ${durationText}...`;
+            dialogTitle.textContent = `Opening for ${durationText}...`;
             countdownMessage.textContent =
                 frictionState.multiplier > 1
                     ? frictionState.message
-                    : `Pausing focus redirect for ${durationText}.`;
+                    : `Taking an intentional ${durationText} break.`;
 
             // Show countdown before applying snooze
             showCountdownDialog(
@@ -567,8 +567,9 @@
                     );
 
                     // Reset dialog title and message for future permanent disable use
-                    dialogTitle.textContent = "Disabling in...";
-                    countdownMessage.textContent = "This will disable your focus redirect.";
+                    dialogTitle.textContent = "Pause before opening";
+                    countdownMessage.textContent =
+                        "This pause gives the intentional part of you time to catch up.";
                 },
                 () => {
                     // User cancelled countdown - keep it enabled
@@ -581,8 +582,9 @@
                     }
 
                     // Reset dialog title and message
-                    dialogTitle.textContent = "Disabling in...";
-                    countdownMessage.textContent = "This will disable your focus redirect.";
+                    dialogTitle.textContent = "Pause before opening";
+                    countdownMessage.textContent =
+                        "This pause gives the intentional part of you time to catch up.";
                 }
             );
         });
@@ -756,9 +758,9 @@
                                 countdownDialog.querySelector(".countdown-message");
 
                             // Ensure dialog has correct text for permanent disable
-                            dialogTitle.textContent = "Permanently disabling in...";
+                            dialogTitle.textContent = "Removing guard in...";
                             countdownMessage.textContent =
-                                "You're about to remove your focus protection entirely.";
+                                "This removes the guard entirely. Cancel if you only wanted a break.";
 
                             showCountdownDialog(
                                 600, // 10 minute countdown for permanent disable
