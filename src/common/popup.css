@@ -526,13 +526,43 @@ h1 {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.permanent-option-label {
+.advanced-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 6px 0;
+    background: transparent;
+    border: 0;
     color: var(--muted);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.2px;
-    margin-bottom: 8px;
     text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.advanced-toggle:hover {
+    color: var(--text);
+}
+
+.advanced-chevron {
+    font-size: 16px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.advanced-toggle[aria-expanded="true"] .advanced-chevron {
+    transform: rotate(90deg);
+}
+
+.advanced-options {
+    margin-top: 8px;
+}
+
+.advanced-options[hidden] {
+    display: none;
 }
 
 .permanent-disable-btn {

@@ -268,14 +268,30 @@
     function showSnoozeOptions(featureType, onSnoozeSelect, onPermanentDisable, onCancel) {
         const dialog = q("#snoozeDialog");
         const snoozeOptions = dialog.querySelectorAll(".snooze-option");
+        const advancedToggle = q("#advancedToggle");
+        const advancedOptions = q("#advancedOptions");
         const permanentBtn = q("#permanentDisable");
         const cancelBtn = q("#snoozeCancel");
+
+        function collapseAdvancedOptions() {
+            if (!advancedToggle || !advancedOptions) return;
+            advancedToggle.setAttribute("aria-expanded", "false");
+            advancedOptions.hidden = true;
+        }
+
+        function toggleAdvancedOptions() {
+            if (!advancedToggle || !advancedOptions) return;
+            const isExpanded = advancedToggle.getAttribute("aria-expanded") === "true";
+            advancedToggle.setAttribute("aria-expanded", String(!isExpanded));
+            advancedOptions.hidden = isExpanded;
+        }
 
         // Handle snooze option selection
         const handleSnoozeSelect = (e) => {
             const duration = e.currentTarget.getAttribute("data-duration");
             dialog.style.display = "none";
             removeEventListeners();
+            collapseAdvancedOptions();
             if (onSnoozeSelect) onSnoozeSelect(duration);
         };
 
@@ -283,6 +299,7 @@
         const handlePermanentDisable = () => {
             dialog.style.display = "none";
             removeEventListeners();
+            collapseAdvancedOptions();
             if (onPermanentDisable) onPermanentDisable();
         };
 
@@ -290,6 +307,7 @@
         const handleCancel = () => {
             dialog.style.display = "none";
             removeEventListeners();
+            collapseAdvancedOptions();
             if (onCancel) onCancel();
         };
 
@@ -298,17 +316,20 @@
             snoozeOptions.forEach((option) => {
                 option.removeEventListener("click", handleSnoozeSelect);
             });
+            advancedToggle?.removeEventListener("click", toggleAdvancedOptions);
             permanentBtn.removeEventListener("click", handlePermanentDisable);
             cancelBtn.removeEventListener("click", handleCancel);
         }
 
         // Show the dialog
+        collapseAdvancedOptions();
         dialog.style.display = "flex";
 
         // Add event listeners
         snoozeOptions.forEach((option) => {
             option.addEventListener("click", handleSnoozeSelect);
         });
+        advancedToggle?.addEventListener("click", toggleAdvancedOptions);
         permanentBtn.addEventListener("click", handlePermanentDisable);
         cancelBtn.addEventListener("click", handleCancel);
 

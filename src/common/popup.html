@@ -157,10 +157,21 @@
                         </button>
                     </div>
                     <div class="permanent-option">
-                        <div class="permanent-option-label">Advanced</div>
-                        <button class="permanent-disable-btn" id="permanentDisable">
-                            Permanently remove protection
+                        <button
+                            class="advanced-toggle"
+                            id="advancedToggle"
+                            type="button"
+                            aria-expanded="false"
+                            aria-controls="advancedOptions"
+                        >
+                            <span>Advanced</span>
+                            <span class="advanced-chevron" aria-hidden="true">›</span>
                         </button>
+                        <div class="advanced-options" id="advancedOptions" hidden>
+                            <button class="permanent-disable-btn" id="permanentDisable">
+                                Permanently remove protection
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="dialog-actions">
