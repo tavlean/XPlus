@@ -99,6 +99,7 @@ function finalizeBreakSession(featureType, endedAt, callback) {
                 requestedMinutes: session.requestedMinutes,
                 appliedWaitSeconds: session.appliedWaitSeconds,
                 frictionTier: session.frictionTier,
+                frictionScore: session.frictionScore,
                 usedMs,
             });
         }

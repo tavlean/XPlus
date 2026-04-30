@@ -14,33 +14,33 @@
         30: { minutes: 30, label: "30 minutes", baseWaitSeconds: 60 },
         60: { minutes: 60, label: "1 hour", baseWaitSeconds: 180 },
     };
-    const FRICTION_TIERS = [
-        {
-            minMinutes: 60,
+    const FRICTION_STATES = {
+        steady: {
+            label: "Steady",
+            multiplier: 1,
+            message: "Pausing focus redirect for an intentional break.",
+            reportMessage: "Protection is ready. Break friction is at baseline.",
+        },
+        watchful: {
+            label: "Watchful",
+            multiplier: 1.5,
+            message: "You have already taken a short break recently. Take a breath before continuing.",
+            reportMessage: "Recent break time is building. The next pause will be a little slower.",
+        },
+        loop: {
+            label: "Checking loop",
+            multiplier: 2,
+            message: "This looks like a quick-check loop. Pause before reopening the feed.",
+            reportMessage: "Repeated recent breaks detected. XPlus will add stronger friction now.",
+        },
+        high: {
+            label: "High friction",
             multiplier: 3,
-            label: "High friction active",
             message:
                 "You have used a lot of break time recently. This pause is here to help you choose intentionally.",
+            reportMessage: "Break use is high. The next pause is intentionally slower.",
         },
-        {
-            minMinutes: 30,
-            multiplier: 2,
-            label: "Extra friction active",
-            message: "This may be turning into a loop. Consider closing X after this.",
-        },
-        {
-            minMinutes: 15,
-            multiplier: 1.5,
-            label: "Gentle friction active",
-            message: "You have already taken a short break recently.",
-        },
-        {
-            minMinutes: 0,
-            multiplier: 1,
-            label: "",
-            message: "Pausing focus redirect...",
-        },
-    ];
+    };
     const defaults = {
         posts: true,
         notifications: true,
@@ -143,6 +143,7 @@
                     requestedMinutes: session.requestedMinutes,
                     appliedWaitSeconds: session.appliedWaitSeconds,
                     frictionTier: session.frictionTier,
+                    frictionScore: session.frictionScore,
                     usedMs,
                 });
             }
@@ -166,6 +167,7 @@
             const history = pruneBreakHistory(items[BREAK_HISTORY_KEY], now);
             const activeBreaks = items[ACTIVE_BREAKS_KEY] || {};
             const last24h = now - 24 * 60 * 60 * 1000;
+            const last3h = now - 3 * 60 * 60 * 1000;
             const last7d = now - 7 * 24 * 60 * 60 * 1000;
             const activeEvents = Object.values(activeBreaks)
                 .filter((session) => session && session.startedAt && session.scheduledEndAt)
@@ -174,26 +176,55 @@
                     return {
                         startedAt: session.startedAt,
                         endedAt,
+                        requestedMinutes: session.requestedMinutes,
                         usedMs: Math.max(0, endedAt - session.startedAt),
                     };
                 });
+            const allEvents = history.concat(activeEvents);
 
             const totalMsSince = (cutoff) =>
-                history.concat(activeEvents).reduce((total, event) => {
+                allEvents.reduce((total, event) => {
                     if (event.endedAt < cutoff) return total;
-                    return total + Math.max(0, event.usedMs || 0);
+                    const effectiveStart = Math.max(event.startedAt || event.endedAt, cutoff);
+                    return total + Math.max(0, event.endedAt - effectiveStart);
                 }, 0);
+            const eventsStartedSince = (cutoff) =>
+                allEvents.filter((event) => event.startedAt && event.startedAt >= cutoff);
+            const completedEvents = allEvents
+                .filter((event) => event.endedAt && event.endedAt <= now)
+                .sort((a, b) => b.endedAt - a.endedAt);
+            const lastBreak = completedEvents[0];
 
             callback({
+                events: allEvents,
                 last24hMs: totalMsSince(last24h),
+                last3hMs: totalMsSince(last3h),
                 last7dMs: totalMsSince(last7d),
+                last3hBreakStarts: eventsStartedSince(last3h).length,
+                last3hShortBreakStarts: eventsStartedSince(last3h).filter(
+                    (event) => event.requestedMinutes === 5
+                ).length,
+                minutesSinceLastBreak: lastBreak
+                    ? Math.floor((now - lastBreak.endedAt) / (60 * 1000))
+                    : null,
             });
         });
     }
 
-    function getFrictionTier(totalMs) {
-        const minutes = totalMs / (60 * 1000);
-        return FRICTION_TIERS.find((tier) => minutes >= tier.minMinutes) || FRICTION_TIERS[3];
+    function getFrictionState(stats) {
+        let score = 0;
+        if (stats.last24hMs >= 15 * 60 * 1000) score += 1;
+        if (stats.last3hMs >= 10 * 60 * 1000) score += 1;
+        if (stats.last3hBreakStarts >= 2) score += 1;
+        if (stats.last3hShortBreakStarts >= 2) score += 1;
+        if (stats.minutesSinceLastBreak !== null && stats.minutesSinceLastBreak < 30) score += 1;
+        if (stats.minutesSinceLastBreak !== null && stats.minutesSinceLastBreak >= 180) score -= 1;
+
+        const normalizedScore = Math.max(0, score);
+        if (normalizedScore >= 4) return { ...FRICTION_STATES.high, score: normalizedScore };
+        if (normalizedScore === 3) return { ...FRICTION_STATES.loop, score: normalizedScore };
+        if (normalizedScore === 2) return { ...FRICTION_STATES.watchful, score: normalizedScore };
+        return { ...FRICTION_STATES.steady, score: normalizedScore };
     }
 
     // Helper function to get friction-specific data for a feature type
@@ -441,10 +472,10 @@
     }
 
     // Helper function to calculate countdown duration based on snooze time
-    function getCountdownDuration(snoozeDuration, frictionTier) {
+    function getCountdownDuration(snoozeDuration, frictionState) {
         const duration = SNOOZE_DURATIONS[snoozeDuration];
         const baseWaitSeconds = duration ? duration.baseWaitSeconds : 10;
-        const multiplier = frictionTier ? frictionTier.multiplier : 1;
+        const multiplier = frictionState ? frictionState.multiplier : 1;
         return Math.min(Math.ceil(baseWaitSeconds * multiplier), 600);
     }
 
@@ -460,8 +491,8 @@
         if (!durationConfig) return;
 
         getBreakStats((stats) => {
-            const frictionTier = getFrictionTier(stats.last24hMs);
-            const countdownSeconds = getCountdownDuration(duration, frictionTier);
+            const frictionState = getFrictionState(stats);
+            const countdownSeconds = getCountdownDuration(duration, frictionState);
             const durationText = getSnoozeDurationText(duration);
 
             // Update countdown dialog title and message for snooze
@@ -471,8 +502,8 @@
 
             dialogTitle.textContent = `Snoozing for ${durationText}...`;
             countdownMessage.textContent =
-                frictionTier.multiplier > 1
-                    ? frictionTier.message
+                frictionState.multiplier > 1
+                    ? frictionState.message
                     : `Pausing focus redirect for ${durationText}.`;
 
             // Show countdown before applying snooze
@@ -491,7 +522,8 @@
                             scheduledEndAt: snoozeEndTime,
                             requestedMinutes: durationConfig.minutes,
                             appliedWaitSeconds: countdownSeconds,
-                            frictionTier: frictionTier.label || "baseline",
+                            frictionTier: frictionState.label,
+                            frictionScore: frictionState.score,
                         },
                         () => {
                             // Store snooze data and disable the feature
@@ -836,12 +868,12 @@
         if (!breakTime24h || !breakTime7d || !breakFrictionTier) return;
 
         getBreakStats((stats) => {
-            const tier = getFrictionTier(stats.last24hMs);
+            const frictionState = getFrictionState(stats);
             breakTime24h.textContent = formatBreakTotal(stats.last24hMs);
             breakTime7d.textContent = formatBreakTotal(stats.last7dMs);
 
-            if (tier.multiplier > 1) {
-                breakFrictionTier.textContent = tier.label;
+            if (frictionState.multiplier > 1) {
+                breakFrictionTier.textContent = frictionState.label;
                 breakFrictionTier.style.display = "block";
             } else {
                 breakFrictionTier.style.display = "none";
