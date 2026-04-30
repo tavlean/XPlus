@@ -24,21 +24,21 @@
         },
         watchful: {
             key: "watchful",
-            label: "Watchful",
+            label: "Building",
             multiplier: 1.5,
             message: "You have already taken a short break recently. Take a breath before continuing.",
             reportMessage: "Recent break time is building. The next pause will be a little slower.",
         },
         loop: {
             key: "loop",
-            label: "Checking loop",
+            label: "Frequent checks",
             multiplier: 2,
-            message: "This looks like a quick-check loop. Pause before reopening the feed.",
+            message: "Quick checks are stacking up. Pause before reopening the feed.",
             reportMessage: "Repeated recent breaks detected. XPlus will add stronger friction now.",
         },
         high: {
             key: "high",
-            label: "High friction",
+            label: "High pull",
             multiplier: 3,
             message:
                 "You have used a lot of break time recently. This pause is here to help you choose intentionally.",

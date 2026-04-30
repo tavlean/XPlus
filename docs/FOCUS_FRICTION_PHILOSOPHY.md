@@ -48,12 +48,12 @@ The current model uses a risk-state score instead of raw time alone. It looks at
 
 This matters because repeated 5-minute breaks close together are more likely to represent a checking loop than one 15-minute break followed by another break several hours later.
 
-The score maps to stepped states:
+The score maps to stepped states. Internally, XPlus still detects loop-like behavior, but the visible labels stay softer so the app does not feel accusatory when the user is already in a low-control state:
 
 - Steady: normal waiting time.
-- Watchful: 1.5x waiting time.
-- Checking loop: 2x waiting time.
-- High friction: 3x waiting time, capped at 10 minutes.
+- Building: 1.5x waiting time.
+- Frequent checks: 2x waiting time.
+- High pull: 3x waiting time, capped at 10 minutes.
 
 This is intentionally firm but bounded. It says, "Something is happening here; slow down," without turning the extension into an adversary.
 

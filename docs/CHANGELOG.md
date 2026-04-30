@@ -10,7 +10,7 @@ All notable changes to XPlus will be documented in this file.
     -   Uses 24-hour break time, 3-hour break time, number of recent break starts, repeated 5-minute requests, and spacing since the last break.
     -   Treats repeated short breaks close together as a stronger sign of a checking loop than well-spaced intentional breaks.
 -   **Dynamic Focus State**: Popup now shows a current pattern state with 3-hour, 24-hour, and 7-day break context.
-    -   States include Steady, Watchful, Checking loop, and High friction.
+    -   Visible states include Steady, Building, Frequent checks, and High pull.
     -   The popup shows short contextual notes when recent behavior suggests a loop or healthy spacing.
 
 ### Changed
