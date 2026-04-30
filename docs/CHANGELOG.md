@@ -6,38 +6,45 @@ All notable changes to XPlus will be documented in this file.
 
 ### Added
 
+-   **Actual-Used Break Tracking**: Break history now tracks elapsed snooze time, not just requested duration.
+    -   Re-enabling a guard early only counts the time actually used.
+    -   Active breaks are included in the 3-hour, 24-hour, and 7-day popup totals while the break is still running.
+    -   Break history is stored locally and does not add extension permissions.
 -   **Risk-State Adaptive Friction**: Break friction now looks at behavioral pattern, not only total time.
     -   Uses 24-hour break time, 3-hour break time, number of recent break starts, repeated 5-minute requests, and spacing since the last break.
-    -   Treats repeated short breaks close together as a stronger sign of a checking loop than well-spaced intentional breaks.
--   **Dynamic Focus State**: Popup now shows a current pattern state with 3-hour, 24-hour, and 7-day break context.
+    -   Treats repeated short breaks close together as a stronger signal than well-spaced breaks.
+-   **Compact Focus State**: Popup now shows a compact current pattern state with 3-hour, 24-hour, and 7-day break totals.
     -   Visible states include Steady, Building, Frequent checks, and High pull.
-    -   The popup shows short contextual notes when recent behavior suggests a loop or healthy spacing.
 -   **Adaptive Countdown Prompts**: Waiting periods now rotate brief prompts based on the actual countdown length.
     -   Short waits show simple breath or attention-shift prompts.
     -   Longer waits can suggest standing up, getting water, walking briefly, or reconsidering whether the break is still needed.
     -   Prompt timing is based on the wait duration after adaptive friction is applied, not the selected break duration.
-
-### Changed
-
--   **Focus Copy Pass**: Renamed focus controls around guards rather than redirects, softened dialog language, and made countdown copy more intentional.
--   **Interaction Tone**: Reduced pulsing and sharpened motion/easing so the popup feels calmer and less alarm-like.
-
----
-
-## [1.6.0] - 2026-04-30
-
-### Added
-
--   **Adaptive Focus Break Friction**: Break requests now use actual elapsed snooze time across Home and Explore to increase waiting friction after repeated recent breaks.
-    -   Tracks active break sessions locally and finalizes actual used time when protection is re-enabled early or the snooze expires.
-    -   Adds compact popup reporting for break time used in the last 24 hours and last 7 days.
-    -   Uses stepped waiting tiers after 15, 30, and 60 minutes of actual break time in the last 24 hours.
 -   **Focus Friction Philosophy Doc**: Added `docs/FOCUS_FRICTION_PHILOSOPHY.md` as a plain-language reference for the product philosophy and research behind focus friction.
 
 ### Changed
 
 -   **Snooze Options**: Updated focus break choices to 5 minutes, 15 minutes, 30 minutes, and 1 hour.
--   **Permanent Disable Placement**: Moved permanent protection removal behind a less prominent Advanced area while keeping the existing 10 minute countdown.
+-   **Permanent Disable Placement**: Moved permanent guard removal behind a collapsed Advanced area while keeping the existing 10 minute countdown.
+-   **Focus Copy Pass**: Renamed focus controls around guards rather than redirects and tightened break-flow language.
+-   **Interaction Tone**: Reduced pulsing and sharpened motion/easing so the popup feels calmer and less alarm-like.
+
+---
+
+## [1.5.0] - 2026-04-14
+
+### Added
+
+-   **Friction Overhaul**: Snooze options were reworked to 5 minutes, 15 minutes, 1 hour, and 4 hours.
+    -   Countdown wait times scaled by snooze duration: 5 minutes -> 10 seconds, 15 minutes -> 30 seconds, 1 hour -> 3 minutes, and 4 hours -> 8 minutes.
+    -   Permanent disable countdown increased to 10 minutes.
+    -   Countdown display switched to `mm:ss` for waits of 60 seconds or more.
+    -   Leaving the popup during a countdown now cancels the countdown.
+-   **Popup Sync Fix**: Popup now listens for storage changes from the background script so toggle state and snooze indicators update when a snooze expires.
+
+### Changed
+
+-   **Focus Copy Cleanup**: Updated popup labels and snooze messages for feed, Explore, timestamps, resume status, temporary breaks, and permanent disable.
+-   **Code Cleanup**: Removed dead friction fields and unused helper paths, removed old tomorrow-snooze handling, and fixed the notification icon path.
 
 ---
 
