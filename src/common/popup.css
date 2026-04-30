@@ -173,6 +173,39 @@ h1 {
     font-weight: 500;
 }
 
+.break-report {
+    margin: 10px 0 14px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.break-report-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.break-report-row strong {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.break-report-tier {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #d4af37;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
 /* Enhanced Switch Styling */
 .switch {
     position: relative;

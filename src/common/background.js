@@ -9,6 +9,10 @@ const storageDefaults = {
     snoozeEndTime: null,
     exploreSnoozeEndTime: null,
 };
+const BREAK_HISTORY_KEY = "focusBreakHistory";
+const ACTIVE_BREAKS_KEY = "activeFocusBreaks";
+const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
+const MAX_BREAK_HISTORY_EVENTS = 5000;
 
 // Helper functions for safe storage operations
 function safeStorageGet(keys, callback) {
@@ -33,6 +37,82 @@ function safeStorageSet(items, callback) {
         console.warn("Storage set failed:", e);
         if (callback) callback();
     }
+}
+
+function safeLocalGet(keys, callback) {
+    try {
+        if (!chrome.storage.local) {
+            callback({});
+            return;
+        }
+        chrome.storage.local.get(keys, (items) => {
+            callback(items || {});
+        });
+    } catch (e) {
+        console.warn("Local storage get failed:", e);
+        callback({});
+    }
+}
+
+function safeLocalSet(items, callback) {
+    try {
+        if (!chrome.storage.local) {
+            if (callback) callback();
+            return;
+        }
+        chrome.storage.local.set(items, () => {
+            if (callback) callback();
+        });
+    } catch (e) {
+        console.warn("Local storage set failed:", e);
+        if (callback) callback();
+    }
+}
+
+function pruneBreakHistory(history, now = Date.now()) {
+    const cutoff = now - FIVE_YEARS_MS;
+    return (Array.isArray(history) ? history : [])
+        .filter((event) => event && event.endedAt >= cutoff && event.usedMs > 0)
+        .slice(-MAX_BREAK_HISTORY_EVENTS);
+}
+
+function finalizeBreakSession(featureType, endedAt, callback) {
+    safeLocalGet({ [ACTIVE_BREAKS_KEY]: {}, [BREAK_HISTORY_KEY]: [] }, (items) => {
+        const activeBreaks = items[ACTIVE_BREAKS_KEY] || {};
+        const session = activeBreaks[featureType];
+        if (!session) {
+            if (callback) callback(false);
+            return;
+        }
+
+        const safeEndedAt = Math.min(endedAt || Date.now(), session.scheduledEndAt);
+        const usedMs = Math.max(0, safeEndedAt - session.startedAt);
+        delete activeBreaks[featureType];
+
+        const history = pruneBreakHistory(items[BREAK_HISTORY_KEY]);
+        if (usedMs > 0) {
+            history.push({
+                featureType,
+                startedAt: session.startedAt,
+                scheduledEndAt: session.scheduledEndAt,
+                endedAt: safeEndedAt,
+                requestedMinutes: session.requestedMinutes,
+                appliedWaitSeconds: session.appliedWaitSeconds,
+                frictionTier: session.frictionTier,
+                usedMs,
+            });
+        }
+
+        safeLocalSet(
+            {
+                [ACTIVE_BREAKS_KEY]: activeBreaks,
+                [BREAK_HISTORY_KEY]: pruneBreakHistory(history),
+            },
+            () => {
+                if (callback) callback(true);
+            }
+        );
+    });
 }
 
 function initializeDNRRules() {
@@ -75,25 +155,29 @@ function initializeDNRRules() {
 function handleHomeSnoozeExpiration() {
     console.log("Handling home snooze expiration...");
 
-    // Clear the home snooze end time from storage
-    safeStorageSet({ snoozeEndTime: null }, () => {
-        // Re-enable the home redirect feature
-        safeStorageSet({ homeRedirect: true }, () => {
-            console.log("Home redirect re-enabled after snooze expiration");
+    safeStorageGet(["snoozeEndTime"], (items) => {
+        finalizeBreakSession("home", items.snoozeEndTime || Date.now(), () => {
+            // Clear the home snooze end time from storage
+            safeStorageSet({ snoozeEndTime: null }, () => {
+                // Re-enable the home redirect feature
+                safeStorageSet({ homeRedirect: true }, () => {
+                    console.log("Home redirect re-enabled after snooze expiration");
 
-            // Update DNR rules to enable home redirect
-            try {
-                if (chrome.declarativeNetRequest) {
-                    chrome.declarativeNetRequest.updateEnabledRulesets({
-                        enableRulesetIds: ["ruleset_home_redirect"],
-                    });
-                }
-            } catch (e) {
-                console.warn("Failed to update DNR rules on home snooze expiration:", e);
-            }
+                    // Update DNR rules to enable home redirect
+                    try {
+                        if (chrome.declarativeNetRequest) {
+                            chrome.declarativeNetRequest.updateEnabledRulesets({
+                                enableRulesetIds: ["ruleset_home_redirect"],
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Failed to update DNR rules on home snooze expiration:", e);
+                    }
 
-            // Show notification that feature has been re-enabled (requirement 2.4)
-            showSnoozeExpirationNotification("home");
+                    // Show notification that feature has been re-enabled (requirement 2.4)
+                    showSnoozeExpirationNotification("home");
+                });
+            });
         });
     });
 }
@@ -102,25 +186,32 @@ function handleHomeSnoozeExpiration() {
 function handleExploreSnoozeExpiration() {
     console.log("Handling explore snooze expiration...");
 
-    // Clear the explore snooze end time from storage
-    safeStorageSet({ exploreSnoozeEndTime: null }, () => {
-        // Re-enable the explore redirect feature
-        safeStorageSet({ exploreRedirect: true }, () => {
-            console.log("Explore redirect re-enabled after snooze expiration");
+    safeStorageGet(["exploreSnoozeEndTime"], (items) => {
+        finalizeBreakSession("explore", items.exploreSnoozeEndTime || Date.now(), () => {
+            // Clear the explore snooze end time from storage
+            safeStorageSet({ exploreSnoozeEndTime: null }, () => {
+                // Re-enable the explore redirect feature
+                safeStorageSet({ exploreRedirect: true }, () => {
+                    console.log("Explore redirect re-enabled after snooze expiration");
 
-            // Update DNR rules to enable explore redirect
-            try {
-                if (chrome.declarativeNetRequest) {
-                    chrome.declarativeNetRequest.updateEnabledRulesets({
-                        enableRulesetIds: ["ruleset_explore_redirect"],
-                    });
-                }
-            } catch (e) {
-                console.warn("Failed to update DNR rules on explore snooze expiration:", e);
-            }
+                    // Update DNR rules to enable explore redirect
+                    try {
+                        if (chrome.declarativeNetRequest) {
+                            chrome.declarativeNetRequest.updateEnabledRulesets({
+                                enableRulesetIds: ["ruleset_explore_redirect"],
+                            });
+                        }
+                    } catch (e) {
+                        console.warn(
+                            "Failed to update DNR rules on explore snooze expiration:",
+                            e
+                        );
+                    }
 
-            // Show notification that feature has been re-enabled (requirement 2.4)
-            showSnoozeExpirationNotification("explore");
+                    // Show notification that feature has been re-enabled (requirement 2.4)
+                    showSnoozeExpirationNotification("explore");
+                });
+            });
         });
     });
 }

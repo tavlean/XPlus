@@ -4,6 +4,43 @@
     const $notifs = q("#notifications");
     const $homeRedirect = q("#homeRedirect");
     const $exploreRedirect = q("#exploreRedirect");
+    const BREAK_HISTORY_KEY = "focusBreakHistory";
+    const ACTIVE_BREAKS_KEY = "activeFocusBreaks";
+    const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
+    const MAX_BREAK_HISTORY_EVENTS = 5000;
+    const SNOOZE_DURATIONS = {
+        5: { minutes: 5, label: "5 minutes", baseWaitSeconds: 10 },
+        15: { minutes: 15, label: "15 minutes", baseWaitSeconds: 30 },
+        30: { minutes: 30, label: "30 minutes", baseWaitSeconds: 60 },
+        60: { minutes: 60, label: "1 hour", baseWaitSeconds: 180 },
+    };
+    const FRICTION_TIERS = [
+        {
+            minMinutes: 60,
+            multiplier: 3,
+            label: "High friction active",
+            message:
+                "You have used a lot of break time recently. This pause is here to help you choose intentionally.",
+        },
+        {
+            minMinutes: 30,
+            multiplier: 2,
+            label: "Extra friction active",
+            message: "This may be turning into a loop. Consider closing X after this.",
+        },
+        {
+            minMinutes: 15,
+            multiplier: 1.5,
+            label: "Gentle friction active",
+            message: "You have already taken a short break recently.",
+        },
+        {
+            minMinutes: 0,
+            multiplier: 1,
+            label: "",
+            message: "Pausing focus redirect...",
+        },
+    ];
     const defaults = {
         posts: true,
         notifications: true,
@@ -36,6 +73,115 @@
             console.warn("Storage set failed:", e);
             if (callback) callback();
         }
+    }
+
+    function safeLocalGet(keys, callback) {
+        try {
+            if (!chrome.storage.local) {
+                callback({});
+                return;
+            }
+            chrome.storage.local.get(keys, (items) => {
+                callback(items || {});
+            });
+        } catch (e) {
+            console.warn("Local storage get failed:", e);
+            callback({});
+        }
+    }
+
+    function safeLocalSet(items, callback) {
+        try {
+            if (!chrome.storage.local) {
+                if (callback) callback();
+                return;
+            }
+            chrome.storage.local.set(items, () => {
+                if (callback) callback();
+            });
+        } catch (e) {
+            console.warn("Local storage set failed:", e);
+            if (callback) callback();
+        }
+    }
+
+    function pruneBreakHistory(history, now = Date.now()) {
+        const cutoff = now - FIVE_YEARS_MS;
+        return (Array.isArray(history) ? history : [])
+            .filter((event) => event && event.endedAt >= cutoff && event.usedMs > 0)
+            .slice(-MAX_BREAK_HISTORY_EVENTS);
+    }
+
+    function startBreakSession(featureType, session, callback) {
+        safeLocalGet({ [ACTIVE_BREAKS_KEY]: {} }, (items) => {
+            const activeBreaks = items[ACTIVE_BREAKS_KEY] || {};
+            activeBreaks[featureType] = session;
+            safeLocalSet({ [ACTIVE_BREAKS_KEY]: activeBreaks }, callback);
+        });
+    }
+
+    function finalizeBreakSession(featureType, endedAt, callback) {
+        safeLocalGet({ [ACTIVE_BREAKS_KEY]: {}, [BREAK_HISTORY_KEY]: [] }, (items) => {
+            const activeBreaks = items[ACTIVE_BREAKS_KEY] || {};
+            const session = activeBreaks[featureType];
+            if (!session) {
+                if (callback) callback(false);
+                return;
+            }
+
+            const safeEndedAt = Math.min(endedAt || Date.now(), session.scheduledEndAt);
+            const usedMs = Math.max(0, safeEndedAt - session.startedAt);
+            delete activeBreaks[featureType];
+
+            const history = pruneBreakHistory(items[BREAK_HISTORY_KEY]);
+            if (usedMs > 0) {
+                history.push({
+                    featureType,
+                    startedAt: session.startedAt,
+                    scheduledEndAt: session.scheduledEndAt,
+                    endedAt: safeEndedAt,
+                    requestedMinutes: session.requestedMinutes,
+                    appliedWaitSeconds: session.appliedWaitSeconds,
+                    frictionTier: session.frictionTier,
+                    usedMs,
+                });
+            }
+
+            safeLocalSet(
+                {
+                    [ACTIVE_BREAKS_KEY]: activeBreaks,
+                    [BREAK_HISTORY_KEY]: pruneBreakHistory(history),
+                },
+                () => {
+                    updateBreakReport();
+                    if (callback) callback(true);
+                }
+            );
+        });
+    }
+
+    function getBreakStats(callback) {
+        safeLocalGet({ [BREAK_HISTORY_KEY]: [] }, (items) => {
+            const now = Date.now();
+            const history = pruneBreakHistory(items[BREAK_HISTORY_KEY], now);
+            const last24h = now - 24 * 60 * 60 * 1000;
+            const last7d = now - 7 * 24 * 60 * 60 * 1000;
+            const totalMsSince = (cutoff) =>
+                history.reduce((total, event) => {
+                    if (event.endedAt < cutoff) return total;
+                    return total + Math.max(0, event.usedMs || 0);
+                }, 0);
+
+            callback({
+                last24hMs: totalMsSince(last24h),
+                last7dMs: totalMsSince(last7d),
+            });
+        });
+    }
+
+    function getFrictionTier(totalMs) {
+        const minutes = totalMs / (60 * 1000);
+        return FRICTION_TIERS.find((tier) => minutes >= tier.minMinutes) || FRICTION_TIERS[3];
     }
 
     // Helper function to get friction-specific data for a feature type
@@ -262,97 +408,115 @@
     }
 
     // Helper function to calculate countdown duration based on snooze time
-    // Higher durations = exponentially more punishing countdowns
-    function getCountdownDuration(snoozeDuration) {
-        if (snoozeDuration === "5") return 10; // 10 seconds for 5 minutes
-        if (snoozeDuration === "15") return 30; // 30 seconds for 15 minutes
-        if (snoozeDuration === "60") return 180; // 3 minutes for 1 hour
-        if (snoozeDuration === "240") return 480; // 8 minutes for 4 hours
-        return 10; // Default fallback
+    function getCountdownDuration(snoozeDuration, frictionTier) {
+        const duration = SNOOZE_DURATIONS[snoozeDuration];
+        const baseWaitSeconds = duration ? duration.baseWaitSeconds : 10;
+        const multiplier = frictionTier ? frictionTier.multiplier : 1;
+        return Math.min(Math.ceil(baseWaitSeconds * multiplier), 600);
     }
 
     // Helper function to get snooze duration display text
     function getSnoozeDurationText(duration) {
-        if (duration === "5") return "5 minutes";
-        if (duration === "15") return "15 minutes";
-        if (duration === "60") return "1 hour";
-        if (duration === "240") return "4 hours";
+        if (SNOOZE_DURATIONS[duration]) return SNOOZE_DURATIONS[duration].label;
         return duration;
     }
 
     // Helper function to handle snooze selection with countdown
     function handleSnoozeSelection(featureType, duration) {
-        const countdownSeconds = getCountdownDuration(duration);
-        const durationText = getSnoozeDurationText(duration);
+        const durationConfig = SNOOZE_DURATIONS[duration];
+        if (!durationConfig) return;
 
-        // Update countdown dialog title and message for snooze
-        const countdownDialog = q("#countdownDialog");
-        const dialogTitle = countdownDialog.querySelector(".dialog-title");
-        const countdownMessage = countdownDialog.querySelector(".countdown-message");
+        getBreakStats((stats) => {
+            const frictionTier = getFrictionTier(stats.last24hMs);
+            const countdownSeconds = getCountdownDuration(duration, frictionTier);
+            const durationText = getSnoozeDurationText(duration);
 
-        dialogTitle.textContent = `Snoozing for ${durationText}...`;
-        countdownMessage.textContent = `Pausing your focus redirect for ${durationText}.`;
+            // Update countdown dialog title and message for snooze
+            const countdownDialog = q("#countdownDialog");
+            const dialogTitle = countdownDialog.querySelector(".dialog-title");
+            const countdownMessage = countdownDialog.querySelector(".countdown-message");
 
-        // Show countdown before applying snooze
-        showCountdownDialog(
-            countdownSeconds,
-            () => {
-                // Countdown completed - apply the snooze
-                const snoozeEndTime = calculateSnoozeEndTime(duration);
+            dialogTitle.textContent = `Snoozing for ${durationText}...`;
+            countdownMessage.textContent =
+                frictionTier.multiplier > 1
+                    ? frictionTier.message
+                    : `Pausing focus redirect for ${durationText}.`;
 
-                // Store snooze data and disable the feature
-                updateFrictionData(featureType, { snoozeEndTime }, () => {
-                    // Disable the appropriate feature
-                    if (featureType === "home") {
-                        $homeRedirect.checked = false;
-                        updateSnoozeStatusIndicator();
+            // Show countdown before applying snooze
+            showCountdownDialog(
+                countdownSeconds,
+                () => {
+                    // Countdown completed - apply the snooze
+                    const startedAt = Date.now();
+                    const snoozeEndTime = calculateSnoozeEndTime(duration);
 
-                        // Set up alarm for home snooze expiration
-                        if (chrome.alarms) {
-                            chrome.alarms.clear("homeSnoozeExpired", () => {
-                                chrome.alarms.create("homeSnoozeExpired", { when: snoozeEndTime });
+                    startBreakSession(
+                        featureType,
+                        {
+                            featureType,
+                            startedAt,
+                            scheduledEndAt: snoozeEndTime,
+                            requestedMinutes: durationConfig.minutes,
+                            appliedWaitSeconds: countdownSeconds,
+                            frictionTier: frictionTier.label || "baseline",
+                        },
+                        () => {
+                            // Store snooze data and disable the feature
+                            updateFrictionData(featureType, { snoozeEndTime }, () => {
+                                // Disable the appropriate feature
+                                if (featureType === "home") {
+                                    $homeRedirect.checked = false;
+                                    updateSnoozeStatusIndicator();
+
+                                    // Set up alarm for home snooze expiration
+                                    if (chrome.alarms) {
+                                        chrome.alarms.clear("homeSnoozeExpired", () => {
+                                            chrome.alarms.create("homeSnoozeExpired", {
+                                                when: snoozeEndTime,
+                                            });
+                                        });
+                                    }
+                                } else if (featureType === "explore") {
+                                    if ($exploreRedirect) {
+                                        $exploreRedirect.checked = false;
+                                    }
+                                    updateExploreSnoozeStatusIndicator();
+
+                                    // Set up alarm for explore snooze expiration
+                                    if (chrome.alarms) {
+                                        chrome.alarms.clear("exploreSnoozeExpired", () => {
+                                            chrome.alarms.create("exploreSnoozeExpired", {
+                                                when: snoozeEndTime,
+                                            });
+                                        });
+                                    }
+                                }
+
+                                save();
                             });
                         }
+                    );
+
+                    // Reset dialog title and message for future permanent disable use
+                    dialogTitle.textContent = "Disabling in...";
+                    countdownMessage.textContent = "This will disable your focus redirect.";
+                },
+                () => {
+                    // User cancelled countdown - keep it enabled
+                    if (featureType === "home") {
+                        $homeRedirect.checked = true;
                     } else if (featureType === "explore") {
                         if ($exploreRedirect) {
-                            $exploreRedirect.checked = false;
-                        }
-                        updateExploreSnoozeStatusIndicator();
-
-                        // Set up alarm for explore snooze expiration
-                        if (chrome.alarms) {
-                            chrome.alarms.clear("exploreSnoozeExpired", () => {
-                                chrome.alarms.create("exploreSnoozeExpired", {
-                                    when: snoozeEndTime,
-                                });
-                            });
+                            $exploreRedirect.checked = true;
                         }
                     }
 
-                    save();
-                });
-
-                // Reset dialog title and message for future permanent disable use
-                dialogTitle.textContent = "Disabling in...";
-                countdownMessage.textContent =
-                    "This will disable your focus redirect.";
-            },
-            () => {
-                // User cancelled countdown - keep it enabled
-                if (featureType === "home") {
-                    $homeRedirect.checked = true;
-                } else if (featureType === "explore") {
-                    if ($exploreRedirect) {
-                        $exploreRedirect.checked = true;
-                    }
+                    // Reset dialog title and message
+                    dialogTitle.textContent = "Disabling in...";
+                    countdownMessage.textContent = "This will disable your focus redirect.";
                 }
-
-                // Reset dialog title and message
-                dialogTitle.textContent = "Disabling in...";
-                countdownMessage.textContent =
-                    "This will disable your focus redirect.";
-            }
-        );
+            );
+        });
     }
 
     function load() {
@@ -369,14 +533,16 @@
             // Check if there's an active home snooze that has expired
             if (items.snoozeEndTime && items.snoozeEndTime <= Date.now()) {
                 // Home snooze has expired, clear it and re-enable the feature
-                updateFrictionData("home", { snoozeEndTime: null }, () => {
-                    if (!items.homeRedirect) {
-                        // Re-enable the feature if it was disabled due to snooze
-                        $homeRedirect.checked = true;
-                        save();
-                    }
-                    // Update the snooze indicator after clearing expired snooze
-                    updateSnoozeStatusIndicator();
+                finalizeBreakSession("home", items.snoozeEndTime, () => {
+                    updateFrictionData("home", { snoozeEndTime: null }, () => {
+                        if (!items.homeRedirect) {
+                            // Re-enable the feature if it was disabled due to snooze
+                            $homeRedirect.checked = true;
+                            save();
+                        }
+                        // Update the snooze indicator after clearing expired snooze
+                        updateSnoozeStatusIndicator();
+                    });
                 });
             } else {
                 // Update the snooze indicator on load
@@ -386,19 +552,23 @@
             // Check if there's an active explore snooze that has expired
             if (items.exploreSnoozeEndTime && items.exploreSnoozeEndTime <= Date.now()) {
                 // Explore snooze has expired, clear it and re-enable the feature
-                updateFrictionData("explore", { snoozeEndTime: null }, () => {
-                    if (!items.exploreRedirect && $exploreRedirect) {
-                        // Re-enable the feature if it was disabled due to snooze
-                        $exploreRedirect.checked = true;
-                        save();
-                    }
-                    // Update the explore snooze indicator after clearing expired snooze
-                    updateExploreSnoozeStatusIndicator();
+                finalizeBreakSession("explore", items.exploreSnoozeEndTime, () => {
+                    updateFrictionData("explore", { snoozeEndTime: null }, () => {
+                        if (!items.exploreRedirect && $exploreRedirect) {
+                            // Re-enable the feature if it was disabled due to snooze
+                            $exploreRedirect.checked = true;
+                            save();
+                        }
+                        // Update the explore snooze indicator after clearing expired snooze
+                        updateExploreSnoozeStatusIndicator();
+                    });
                 });
             } else {
                 // Update the explore snooze indicator on load
                 updateExploreSnoozeStatusIndicator();
             }
+
+            updateBreakReport();
         });
     }
 
@@ -459,22 +629,24 @@
             getFrictionData(featureType, (frictionData) => {
                 if (frictionData.snoozeEndTime) {
                     // Clear the snooze timer and alarm
-                    updateFrictionData(featureType, { snoozeEndTime: null }, () => {
-                        if (chrome.alarms) {
-                            const alarmName =
-                                featureType === "home"
-                                    ? "homeSnoozeExpired"
-                                    : "exploreSnoozeExpired";
-                            chrome.alarms.clear(alarmName);
-                        }
-                        // Update the appropriate snooze indicator after clearing snooze
-                        if (featureType === "home") {
-                            updateSnoozeStatusIndicator();
-                        } else if (featureType === "explore") {
-                            updateExploreSnoozeStatusIndicator();
-                        }
-                        // Save after snooze is fully cleared
-                        save();
+                    finalizeBreakSession(featureType, Date.now(), () => {
+                        updateFrictionData(featureType, { snoozeEndTime: null }, () => {
+                            if (chrome.alarms) {
+                                const alarmName =
+                                    featureType === "home"
+                                        ? "homeSnoozeExpired"
+                                        : "exploreSnoozeExpired";
+                                chrome.alarms.clear(alarmName);
+                            }
+                            // Update the appropriate snooze indicator after clearing snooze
+                            if (featureType === "home") {
+                                updateSnoozeStatusIndicator();
+                            } else if (featureType === "explore") {
+                                updateExploreSnoozeStatusIndicator();
+                            }
+                            // Save after snooze is fully cleared
+                            save();
+                        });
                     });
                 } else {
                     // No snooze to clear, just update indicator and save
@@ -483,6 +655,7 @@
                     } else if (featureType === "explore") {
                         updateExploreSnoozeStatusIndicator();
                     }
+                    updateBreakReport();
                     save();
                 }
             });
@@ -576,7 +749,12 @@
 
                 // If there was a snooze time but it's expired, clear it
                 if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
-                    updateFrictionData("home", { snoozeEndTime: null });
+                    finalizeBreakSession("home", frictionData.snoozeEndTime, () => {
+                        updateFrictionData("home", { snoozeEndTime: null }, () => {
+                            $homeRedirect.checked = true;
+                            save();
+                        });
+                    });
                 }
             }
         });
@@ -608,6 +786,36 @@
         }
     }
 
+    function formatBreakTotal(milliseconds) {
+        const totalMinutes = Math.floor(milliseconds / (60 * 1000));
+        if (totalMinutes < 60) return `${totalMinutes}m`;
+
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        if (minutes === 0) return `${hours}h`;
+        return `${hours}h ${minutes}m`;
+    }
+
+    function updateBreakReport() {
+        const breakTime24h = q("#breakTime24h");
+        const breakTime7d = q("#breakTime7d");
+        const breakFrictionTier = q("#breakFrictionTier");
+        if (!breakTime24h || !breakTime7d || !breakFrictionTier) return;
+
+        getBreakStats((stats) => {
+            const tier = getFrictionTier(stats.last24hMs);
+            breakTime24h.textContent = formatBreakTotal(stats.last24hMs);
+            breakTime7d.textContent = formatBreakTotal(stats.last7dMs);
+
+            if (tier.multiplier > 1) {
+                breakFrictionTier.textContent = tier.label;
+                breakFrictionTier.style.display = "block";
+            } else {
+                breakFrictionTier.style.display = "none";
+            }
+        });
+    }
+
     // Explore snooze status indicator
     function updateExploreSnoozeStatusIndicator() {
         const exploreSnoozeStatus = q("#exploreSnoozeStatus");
@@ -630,7 +838,14 @@
 
                 // If there was a snooze time but it's expired, clear it
                 if (frictionData.snoozeEndTime && frictionData.snoozeEndTime <= Date.now()) {
-                    updateFrictionData("explore", { snoozeEndTime: null });
+                    finalizeBreakSession("explore", frictionData.snoozeEndTime, () => {
+                        updateFrictionData("explore", { snoozeEndTime: null }, () => {
+                            if ($exploreRedirect) {
+                                $exploreRedirect.checked = true;
+                                save();
+                            }
+                        });
+                    });
                 }
             }
         });
@@ -646,6 +861,7 @@
         setInterval(() => {
             updateSnoozeStatusIndicator();
             updateExploreSnoozeStatusIndicator();
+            updateBreakReport();
         }, 30000);
     }
 
@@ -713,6 +929,10 @@
                 }
                 if (changes.exploreSnoozeEndTime) {
                     updateExploreSnoozeStatusIndicator();
+                }
+            } else if (area === "local") {
+                if (changes[BREAK_HISTORY_KEY] || changes[ACTIVE_BREAKS_KEY]) {
+                    updateBreakReport();
                 }
             }
         });
