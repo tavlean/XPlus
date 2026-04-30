@@ -161,13 +161,25 @@
     }
 
     function getBreakStats(callback) {
-        safeLocalGet({ [BREAK_HISTORY_KEY]: [] }, (items) => {
+        safeLocalGet({ [BREAK_HISTORY_KEY]: [], [ACTIVE_BREAKS_KEY]: {} }, (items) => {
             const now = Date.now();
             const history = pruneBreakHistory(items[BREAK_HISTORY_KEY], now);
+            const activeBreaks = items[ACTIVE_BREAKS_KEY] || {};
             const last24h = now - 24 * 60 * 60 * 1000;
             const last7d = now - 7 * 24 * 60 * 60 * 1000;
+            const activeEvents = Object.values(activeBreaks)
+                .filter((session) => session && session.startedAt && session.scheduledEndAt)
+                .map((session) => {
+                    const endedAt = Math.min(now, session.scheduledEndAt);
+                    return {
+                        startedAt: session.startedAt,
+                        endedAt,
+                        usedMs: Math.max(0, endedAt - session.startedAt),
+                    };
+                });
+
             const totalMsSince = (cutoff) =>
-                history.reduce((total, event) => {
+                history.concat(activeEvents).reduce((total, event) => {
                     if (event.endedAt < cutoff) return total;
                     return total + Math.max(0, event.usedMs || 0);
                 }, 0);
