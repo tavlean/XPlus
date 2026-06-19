@@ -2,6 +2,15 @@
 
 All notable changes to XPlus will be documented in this file.
 
+## [1.7.1] - 2026-06-19
+
+### Improvements
+
+- **Smoother X Browsing**: The content script now uses a single delegated click handler instead of re-scanning every link and re-attaching listeners on each DOM mutation, removing scroll jank on busy timelines.
+- **Instant Popup State**: The popup opens with toggles already in their saved position. State is mirrored to a synchronous cache and entry transitions are suppressed on open, so the switches no longer animate into place after storage loads.
+
+---
+
 ## [1.7.0] - 2026-05-01
 
 ### Added
