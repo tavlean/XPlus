@@ -84,6 +84,56 @@
         exploreSnoozeEndTime: null,
     };
 
+    // Synchronous render cache (popup paint-state only).
+    //
+    // chrome.storage is async, so on open the toggles would paint in their
+    // default-off state and then visibly flip once storage resolves. We mirror
+    // the four toggle booleans into localStorage (synchronous, same-origin) on
+    // every save and read them back before first paint so the popup opens in
+    // the correct state instantly. chrome.storage.sync stays the source of
+    // truth and reconciles in load().
+    const TOGGLE_CACHE_KEY = "xplusToggleCacheV1";
+
+    function readToggleCache() {
+        try {
+            const raw = localStorage.getItem(TOGGLE_CACHE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function writeToggleCache() {
+        try {
+            localStorage.setItem(
+                TOGGLE_CACHE_KEY,
+                JSON.stringify({
+                    posts: $posts.checked,
+                    notifications: $notifs.checked,
+                    homeRedirect: $homeRedirect.checked,
+                    exploreRedirect: $exploreRedirect ? $exploreRedirect.checked : false,
+                })
+            );
+        } catch (e) {
+            // ignore cache write failures
+        }
+    }
+
+    function primeTogglesFromCache() {
+        const cached = readToggleCache();
+        $posts.checked = cached ? !!cached.posts : defaults.posts;
+        $notifs.checked = cached ? !!cached.notifications : defaults.notifications;
+        $homeRedirect.checked = cached ? !!cached.homeRedirect : defaults.homeRedirect;
+        if ($exploreRedirect) {
+            $exploreRedirect.checked = cached
+                ? !!cached.exploreRedirect
+                : defaults.exploreRedirect;
+        }
+    }
+
+    // Paint stored toggle state synchronously, before the browser's first paint.
+    primeTogglesFromCache();
+
     // Helper functions for safe storage operations
     function safeStorageGet(keys, callback) {
         try {
@@ -682,6 +732,14 @@
                 $exploreRedirect.checked = !!items.exploreRedirect;
             }
 
+            // Align the render cache with authoritative storage, then re-enable
+            // transitions now that the stored state is painted (so user
+            // interactions still animate, but the initial open does not).
+            writeToggleCache();
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => document.body.classList.remove("preload"))
+            );
+
             // Check if there's an active home snooze that has expired
             if (items.snoozeEndTime && items.snoozeEndTime <= Date.now()) {
                 // Home snooze has expired, clear it and re-enable the feature
@@ -735,6 +793,10 @@
         if ($exploreRedirect) {
             saveData.exploreRedirect = $exploreRedirect.checked;
         }
+
+        // Update the synchronous render cache immediately so the next open paints
+        // the new state without waiting on storage.
+        writeToggleCache();
 
         safeStorageSet(saveData, () => {
             // Update DNR rules when redirect settings change
@@ -1012,11 +1074,8 @@
 
     // Set up periodic updates for the snooze indicator
     function startSnoozeIndicatorUpdates() {
-        // Update immediately
-        updateSnoozeStatusIndicator();
-        updateExploreSnoozeStatusIndicator();
-
-        // Update every 30 seconds to keep the time current
+        // Initial values are already populated by load(); avoid duplicating those
+        // storage reads here. Just keep the displayed time fresh.
         setInterval(() => {
             updateSnoozeStatusIndicator();
             updateExploreSnoozeStatusIndicator();

@@ -23,6 +23,16 @@ body {
     font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
         "Apple Color Emoji", "Segoe UI Emoji";
 }
+
+/* Suppress entry transitions/animations until the stored state is painted, so
+   the toggles open in their saved position instead of visibly sliding on. The
+   class is removed by popup.js once initial state is applied. */
+body.preload *,
+body.preload *::before,
+body.preload *::after {
+    transition: none !important;
+    animation: none !important;
+}
 .container {
     width: 340px;
     padding: 16px;
