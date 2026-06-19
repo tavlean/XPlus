@@ -9,6 +9,8 @@
     const ACTIVE_BREAKS_KEY = "activeFocusBreaks";
     const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
     const MAX_BREAK_HISTORY_EVENTS = 5000;
+    // Heads-up before a break ends (keep in sync with background.js).
+    const SNOOZE_WARNING_LEAD_MS = 15 * 1000;
     const SNOOZE_DURATIONS = {
         5: { minutes: 5, label: "5 min", baseWaitSeconds: 10 },
         15: { minutes: 15, label: "15 min", baseWaitSeconds: 30 },
@@ -680,12 +682,21 @@
                                     $homeRedirect.checked = false;
                                     updateSnoozeStatusIndicator();
 
-                                    // Set up alarm for home snooze expiration
+                                    // Set up alarms for home snooze: a heads-up
+                                    // warning plus the expiration itself.
                                     if (chrome.alarms) {
                                         chrome.alarms.clear("homeSnoozeExpired", () => {
                                             chrome.alarms.create("homeSnoozeExpired", {
                                                 when: snoozeEndTime,
                                             });
+                                        });
+                                        const homeWarnAt = snoozeEndTime - SNOOZE_WARNING_LEAD_MS;
+                                        chrome.alarms.clear("homeSnoozeWarning", () => {
+                                            if (homeWarnAt > Date.now()) {
+                                                chrome.alarms.create("homeSnoozeWarning", {
+                                                    when: homeWarnAt,
+                                                });
+                                            }
                                         });
                                     }
                                 } else if (featureType === "explore") {
@@ -694,12 +705,22 @@
                                     }
                                     updateExploreSnoozeStatusIndicator();
 
-                                    // Set up alarm for explore snooze expiration
+                                    // Set up alarms for explore snooze: a heads-up
+                                    // warning plus the expiration itself.
                                     if (chrome.alarms) {
                                         chrome.alarms.clear("exploreSnoozeExpired", () => {
                                             chrome.alarms.create("exploreSnoozeExpired", {
                                                 when: snoozeEndTime,
                                             });
+                                        });
+                                        const exploreWarnAt =
+                                            snoozeEndTime - SNOOZE_WARNING_LEAD_MS;
+                                        chrome.alarms.clear("exploreSnoozeWarning", () => {
+                                            if (exploreWarnAt > Date.now()) {
+                                                chrome.alarms.create("exploreSnoozeWarning", {
+                                                    when: exploreWarnAt,
+                                                });
+                                            }
                                         });
                                     }
                                 }
@@ -863,7 +884,12 @@
                                     featureType === "home"
                                         ? "homeSnoozeExpired"
                                         : "exploreSnoozeExpired";
+                                const warningName =
+                                    featureType === "home"
+                                        ? "homeSnoozeWarning"
+                                        : "exploreSnoozeWarning";
                                 chrome.alarms.clear(alarmName);
+                                chrome.alarms.clear(warningName);
                             }
                             // Update the appropriate snooze indicator after clearing snooze
                             if (featureType === "home") {

@@ -13,6 +13,9 @@ const BREAK_HISTORY_KEY = "focusBreakHistory";
 const ACTIVE_BREAKS_KEY = "activeFocusBreaks";
 const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
 const MAX_BREAK_HISTORY_EVENTS = 5000;
+// How long before a break ends to warn the user, so they can wrap up or open
+// anything they want to keep before the guard starts redirecting again.
+const SNOOZE_WARNING_LEAD_MS = 15 * 1000;
 
 // Helper functions for safe storage operations
 function safeStorageGet(keys, callback) {
@@ -175,8 +178,8 @@ function handleHomeSnoozeExpiration() {
                         console.warn("Failed to update DNR rules on home snooze expiration:", e);
                     }
 
-                    // Show notification that feature has been re-enabled (requirement 2.4)
-                    showSnoozeExpirationNotification("home");
+                    // No notification here — the user was already warned shortly
+                    // before the break ended (see showSnoozeEndingSoonNotification).
                 });
             });
         });
@@ -209,36 +212,38 @@ function handleExploreSnoozeExpiration() {
                         );
                     }
 
-                    // Show notification that feature has been re-enabled (requirement 2.4)
-                    showSnoozeExpirationNotification("explore");
+                    // No notification here — the user was already warned shortly
+                    // before the break ended (see showSnoozeEndingSoonNotification).
                 });
             });
         });
     });
 }
 
-// Show notification when snooze expires and feature re-enables
-function showSnoozeExpirationNotification(featureType = "home") {
+// Warn shortly BEFORE a break ends, so the user can finish reading or open a
+// post in a new tab before the guard starts redirecting again.
+function showSnoozeEndingSoonNotification(featureType = "home") {
     try {
         if (chrome.notifications) {
-            const featureName = featureType === "home" ? "Home Redirect" : "Explore Redirect";
-            const notificationId = `${featureType}-snooze-expired`;
+            const featureName = featureType === "home" ? "Home Guard" : "Explore Guard";
+            const leadSeconds = Math.round(SNOOZE_WARNING_LEAD_MS / 1000);
+            const notificationId = `${featureType}-snooze-ending`;
 
             chrome.notifications.create(notificationId, {
                 type: "basic",
                 iconUrl: "assets/icon48.png",
-                title: "XPlus Focus Feature Re-enabled",
-                message: `Your ${featureName} feature is now active again to help maintain your focus.`,
-                silent: false, // Brief, non-intrusive notification
+                title: "Break ending soon",
+                message: `Your ${featureName} comes back in about ${leadSeconds} seconds. Wrap up or open anything you want to keep in a new tab.`,
+                silent: false,
             });
 
-            // Auto-clear notification after 5 seconds to keep it brief
+            // Clear it around the time the guard actually resumes.
             setTimeout(() => {
                 chrome.notifications.clear(notificationId);
-            }, 5000);
+            }, SNOOZE_WARNING_LEAD_MS + 2000);
         }
     } catch (e) {
-        console.warn("Failed to show snooze expiration notification:", e);
+        console.warn("Failed to show snooze ending-soon notification:", e);
     }
 }
 
@@ -264,7 +269,7 @@ function checkAndRestoreSnoozeAlarms() {
             } else {
                 // Home snooze is still active, recreate the alarm
                 try {
-                    chrome.alarms.create("homeSnoozeExpired", { when: homeSnoozeEndTime });
+                    scheduleSnoozeAlarms("home", homeSnoozeEndTime);
                     console.log(
                         "Restored home snooze alarm for:",
                         new Date(homeSnoozeEndTime).toISOString()
@@ -294,7 +299,7 @@ function checkAndRestoreSnoozeAlarms() {
             } else {
                 // Explore snooze is still active, recreate the alarm
                 try {
-                    chrome.alarms.create("exploreSnoozeExpired", { when: exploreSnoozeEndTime });
+                    scheduleSnoozeAlarms("explore", exploreSnoozeEndTime);
                     console.log(
                         "Restored explore snooze alarm for:",
                         new Date(exploreSnoozeEndTime).toISOString()
@@ -316,24 +321,40 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         handleHomeSnoozeExpiration();
     } else if (alarm.name === "exploreSnoozeExpired") {
         handleExploreSnoozeExpiration();
+    } else if (alarm.name === "homeSnoozeWarning") {
+        showSnoozeEndingSoonNotification("home");
+    } else if (alarm.name === "exploreSnoozeWarning") {
+        showSnoozeEndingSoonNotification("explore");
     }
 });
 
-// Helper function to set up snooze alarm for a specific feature (can be called from popup)
+// Schedule the expiration alarm plus an earlier heads-up warning alarm for a
+// feature. Clears any existing alarms first so re-snoozing is idempotent.
+function scheduleSnoozeAlarms(featureType, snoozeEndTime) {
+    const expiredName = featureType === "home" ? "homeSnoozeExpired" : "exploreSnoozeExpired";
+    const warningName = featureType === "home" ? "homeSnoozeWarning" : "exploreSnoozeWarning";
+
+    chrome.alarms.clear(expiredName);
+    chrome.alarms.clear(warningName);
+
+    chrome.alarms.create(expiredName, { when: snoozeEndTime });
+
+    // Only schedule the heads-up if it is still in the future.
+    const warningTime = snoozeEndTime - SNOOZE_WARNING_LEAD_MS;
+    if (warningTime > Date.now()) {
+        chrome.alarms.create(warningName, { when: warningTime });
+    }
+}
+
+// Helper function to set up snooze alarms for a specific feature (can be called
+// from the popup via the setupSnoozeAlarm message).
 function setupSnoozeAlarm(featureType, snoozeEndTime) {
     try {
-        const alarmName = featureType === "home" ? "homeSnoozeExpired" : "exploreSnoozeExpired";
-
-        // Clear any existing snooze alarm for this feature
-        chrome.alarms.clear(alarmName);
-
-        // Create new alarm for the snooze end time
-        chrome.alarms.create(alarmName, { when: snoozeEndTime });
-
-        console.log(`${featureType} snooze alarm set for:`, new Date(snoozeEndTime).toISOString());
+        scheduleSnoozeAlarms(featureType, snoozeEndTime);
+        console.log(`${featureType} snooze alarms set for:`, new Date(snoozeEndTime).toISOString());
         return true;
     } catch (e) {
-        console.warn(`Failed to setup ${featureType} snooze alarm:`, e);
+        console.warn(`Failed to setup ${featureType} snooze alarms:`, e);
         return false;
     }
 }
