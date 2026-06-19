@@ -94,16 +94,6 @@ h1 {
     letter-spacing: 0.3px;
 }
 
-.section-icon {
-    font-size: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    display: none;
-}
-
 .section-divider {
     height: 1px;
     background: linear-gradient(90deg, var(--border), transparent);
@@ -181,11 +171,6 @@ h1 {
     gap: 8px;
     font-size: 12px;
     color: var(--focus-warm);
-}
-
-.snooze-icon {
-    font-size: 14px;
-    animation: none;
 }
 
 .snooze-text {
@@ -321,16 +306,6 @@ h1 {
     }
 }
 
-@keyframes pulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.6;
-    }
-}
-
 /* Confirmation Dialog Styles */
 .dialog-overlay {
     position: fixed;
@@ -404,11 +379,6 @@ h1 {
     margin-bottom: 12px;
 }
 
-.dialog-icon {
-    font-size: 22px;
-    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.25));
-}
-
 .dialog-title {
     margin: 0;
     font-size: 15px;
@@ -470,24 +440,9 @@ h1 {
     color: #f87171;
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
 /* Countdown Dialog Styles */
 .countdown-content {
     text-align: center;
-}
-
-.countdown-icon {
-    animation: tick 1s infinite;
 }
 
 .countdown-display {
@@ -525,16 +480,6 @@ h1 {
 
 .countdown-message-fade {
     animation: promptFade 0.35s ease;
-}
-
-@keyframes tick {
-    0%,
-    50% {
-        transform: scale(1);
-    }
-    25% {
-        transform: scale(1.1);
-    }
 }
 
 @keyframes countdownPulse {
