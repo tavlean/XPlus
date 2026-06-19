@@ -56,54 +56,32 @@ function safeOpenInNewTab(url) {
     }
 }
 
-// Function to handle post link clicks
-function handlePostLinkClick(event) {
-    if (!xplusSettings.posts) return; // feature disabled
-    if (isPostLink(event.currentTarget)) {
-        event.preventDefault();
-        const fullUrl = event.currentTarget.href;
-        safeOpenInNewTab(fullUrl);
-    }
-}
+// Single delegated click handler for the whole page.
+//
+// Instead of scanning every <a> on the page and attaching listeners on each
+// DOM mutation (very expensive on X's constantly-mutating SPA), we listen once
+// and resolve the clicked link only when a click actually happens. This does
+// zero work while scrolling.
+function handleDelegatedClick(event) {
+    // Resolve the click target up to its nearest anchor (clicks often land on a
+    // child element such as the <time> or text inside the link).
+    const anchor = event.target?.closest?.("a[href]");
+    if (!anchor) return;
 
-// Function to handle notifications link clicks
-function handleNotificationsLinkClick(event) {
-    if (!xplusSettings.notifications) return; // feature disabled
-    if (isNotificationsLink(event.currentTarget)) {
+    if (xplusSettings.posts && isPostLink(anchor)) {
         event.preventDefault();
-        const fullUrl = event.currentTarget.href;
+        safeOpenInNewTab(anchor.href);
+        return;
+    }
+
+    if (xplusSettings.notifications && isNotificationsLink(anchor)) {
+        event.preventDefault();
+        const fullUrl = anchor.href;
         safeOpenInNewTab(fullUrl.startsWith("http") ? fullUrl : `https://x.com${fullUrl}`);
     }
 }
 
-// Function to add click handlers to post links and notifications link
-function addClickHandlers() {
-    const links = document.querySelectorAll("a");
-    links.forEach((link) => {
-        if (isPostLink(link)) {
-            link.addEventListener("click", handlePostLinkClick);
-        } else if (isNotificationsLink(link)) {
-            link.addEventListener("click", handleNotificationsLinkClick);
-        }
-    });
-}
-
-// Create a MutationObserver to watch for new links
-const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-        if (mutation.addedNodes.length) {
-            addClickHandlers();
-        }
-    });
-});
-
-// Start observing the document with the configured parameters
-observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-});
-
-// Initial setup
-if (xplusSettings.posts || xplusSettings.notifications) {
-    addClickHandlers();
-}
+// Capture phase so we intercept the click before X's own SPA navigation
+// handlers can act on it. The settings checks above are read live, so the
+// listener correctly does nothing when both features are disabled.
+document.addEventListener("click", handleDelegatedClick, true);
