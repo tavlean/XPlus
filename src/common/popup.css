@@ -3,10 +3,16 @@
     --panel: #111218;
     --text: #e6e6e6;
     --muted: #a6a6a6;
-    --accent: #2f6f8f;
-    --accent-strong: #3a8fb8;
     --border: #1f2130;
-    --focus-warm: #d4af37;
+    /* Primary button: light zinc fill with dark ink (Tailwind zinc) */
+    --accent: #e4e4e7; /* zinc-200 */
+    --accent-strong: #fafafa; /* zinc-50 */
+    --accent-ink: #18181b; /* zinc-900 */
+    /* Toggle track: two shades of dark grey (off vs on); knob stays light */
+    --toggle-off: #27272a; /* zinc-800 */
+    --toggle-on: #52525b; /* zinc-600 */
+    /* Attention accent (replaces the old gold) */
+    --focus-warm: #f59e0b; /* amber-500 */
     --focus-urgent: #be7544;
 }
 * {
@@ -163,8 +169,8 @@ h1 {
 .snooze-status {
     margin-top: 8px;
     padding: 8px 12px;
-    background: rgba(212, 175, 55, 0.07);
-    border: 1px solid rgba(212, 175, 55, 0.22);
+    background: rgba(245, 158, 11, 0.07);
+    border: 1px solid rgba(245, 158, 11, 0.22);
     border-radius: 8px;
     animation: fadeIn 0.3s ease;
 }
@@ -196,8 +202,8 @@ h1 {
 }
 
 .focus-state[data-state="watchful"] {
-    background: rgba(212, 175, 55, 0.06);
-    border-color: rgba(212, 175, 55, 0.22);
+    background: rgba(245, 158, 11, 0.06);
+    border-color: rgba(245, 158, 11, 0.22);
 }
 
 .focus-state[data-state="loop"],
@@ -269,7 +275,7 @@ h1 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: #2a2c3a;
+    background: var(--toggle-off);
     transition: all 0.3s ease;
     border-radius: 999px;
     border: 1px solid var(--border);
@@ -294,8 +300,8 @@ h1 {
 }
 
 .switch input:checked + .slider {
-    background: var(--accent);
-    box-shadow: 0 0 8px rgba(47, 111, 143, 0.24);
+    background: var(--toggle-on);
+    box-shadow: none;
 }
 
 .switch input:checked + .slider:before {
@@ -400,7 +406,7 @@ h1 {
 
 .dialog-icon {
     font-size: 22px;
-    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.25));
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.25));
 }
 
 .dialog-title {
@@ -442,14 +448,14 @@ h1 {
 
 .dialog-btn-cancel {
     background: var(--accent);
-    color: white;
+    color: var(--accent-ink);
     border: 1px solid var(--accent);
 }
 
 .dialog-btn-cancel:hover {
     background: var(--accent-strong);
     border-color: var(--accent-strong);
-    box-shadow: 0 4px 12px rgba(47, 111, 143, 0.28);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .dialog-btn-confirm {
@@ -496,7 +502,7 @@ h1 {
     font-size: 48px;
     font-weight: 700;
     color: var(--focus-warm);
-    text-shadow: 0 0 12px rgba(212, 175, 55, 0.22);
+    text-shadow: 0 0 12px rgba(245, 158, 11, 0.22);
     animation: countdownPulse 1.8s ease-in-out infinite;
     line-height: 1;
 }
@@ -588,9 +594,9 @@ h1 {
 }
 
 .snooze-option:hover {
-    background: rgba(212, 175, 55, 0.08);
-    border-color: rgba(212, 175, 55, 0.25);
-    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.1);
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.25);
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.1);
 }
 
 .snooze-option:active {
@@ -598,7 +604,7 @@ h1 {
 }
 
 .snooze-time {
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--text);
     line-height: 1.2;
@@ -615,7 +621,7 @@ h1 {
 }
 
 .snooze-option:hover .snooze-desc {
-    color: rgba(212, 175, 55, 0.65);
+    color: rgba(245, 158, 11, 0.65);
 }
 
 .permanent-option {

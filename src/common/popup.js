@@ -10,10 +10,10 @@
     const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
     const MAX_BREAK_HISTORY_EVENTS = 5000;
     const SNOOZE_DURATIONS = {
-        5: { minutes: 5, label: "5 minutes", baseWaitSeconds: 10 },
-        15: { minutes: 15, label: "15 minutes", baseWaitSeconds: 30 },
-        30: { minutes: 30, label: "30 minutes", baseWaitSeconds: 60 },
-        60: { minutes: 60, label: "1 hour", baseWaitSeconds: 180 },
+        5: { minutes: 5, label: "5 min", baseWaitSeconds: 10 },
+        15: { minutes: 15, label: "15 min", baseWaitSeconds: 30 },
+        30: { minutes: 30, label: "30 min", baseWaitSeconds: 60 },
+        60: { minutes: 60, label: "1 hr", baseWaitSeconds: 180 },
     };
     const COUNTDOWN_PROMPTS = {
         short: [
@@ -1006,11 +1006,11 @@
             if (minutes > 0) {
                 return `${totalHours}h ${minutes}m`;
             }
-            return `${totalHours} hour${totalHours > 1 ? "s" : ""}`;
+            return `${totalHours} hr${totalHours > 1 ? "s" : ""}`;
         } else if (totalMinutes > 0) {
-            return `${totalMinutes} minute${totalMinutes > 1 ? "s" : ""}`;
+            return `${totalMinutes} min`;
         } else {
-            return "less than a minute";
+            return "less than a min";
         }
     }
 
