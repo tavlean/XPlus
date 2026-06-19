@@ -106,9 +106,12 @@
             </section>
         </div>
 
-        <!-- Confirmation Dialog Overlay -->
-        <div class="dialog-overlay" id="confirmDialog" style="display: none">
-            <div class="dialog-content">
+        <!-- Shared modal: one backdrop, swappable dialog panels. Keeping a single
+             backdrop means stepping between dialogs never flashes the settings
+             screen — only the card crossfades while the dim stays constant. -->
+        <div class="dialog-overlay" id="modalOverlay">
+            <!-- Confirmation panel -->
+            <div class="dialog-content" id="confirmDialog">
                 <div class="dialog-header">
                     <span class="dialog-icon">⚠️</span>
                     <h3 class="dialog-title" id="dialogTitle">Take a feed break?</h3>
@@ -127,11 +130,9 @@
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Snooze Options Dialog Overlay -->
-        <div class="dialog-overlay" id="snoozeDialog" style="display: none">
-            <div class="dialog-content snooze-content">
+            <!-- Snooze options panel -->
+            <div class="dialog-content snooze-content" id="snoozeDialog">
                 <div class="dialog-header">
                     <span class="dialog-icon">⏰</span>
                     <h3 class="dialog-title">Choose a break</h3>
@@ -182,11 +183,9 @@
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Countdown Dialog Overlay -->
-        <div class="dialog-overlay" id="countdownDialog" style="display: none">
-            <div class="dialog-content countdown-content">
+            <!-- Countdown panel -->
+            <div class="dialog-content countdown-content" id="countdownDialog">
                 <div class="dialog-header">
                     <span class="dialog-icon countdown-icon">⏱️</span>
                     <h3 class="dialog-title">Pause before opening</h3>

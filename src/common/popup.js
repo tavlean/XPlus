@@ -4,6 +4,7 @@
     const $notifs = q("#notifications");
     const $homeRedirect = q("#homeRedirect");
     const $exploreRedirect = q("#exploreRedirect");
+    const $modalOverlay = q("#modalOverlay");
     const BREAK_HISTORY_KEY = "focusBreakHistory";
     const ACTIVE_BREAKS_KEY = "activeFocusBreaks";
     const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
@@ -329,9 +330,40 @@
         safeStorageSet(updateData, callback);
     }
 
+    // ----- Shared modal controller -----
+    // All in-popup dialogs live inside one backdrop (#modalOverlay). Stepping
+    // from one dialog to the next swaps the visible panel while the backdrop
+    // stays up, so the settings screen never flashes through between dialogs.
+    let currentBackdropCancel = null;
+
+    function openPanel(panel, onBackdropCancel) {
+        currentBackdropCancel = onBackdropCancel || null;
+        // Hide every other panel; only the target stays visible.
+        $modalOverlay.querySelectorAll(".dialog-content").forEach((p) => {
+            if (p !== panel) p.classList.remove("is-active");
+        });
+        // Restart the entry animation even when swapping from another panel.
+        panel.classList.remove("is-active");
+        void panel.offsetWidth;
+        panel.classList.add("is-active");
+        $modalOverlay.classList.add("is-open");
+    }
+
+    function closeModal() {
+        currentBackdropCancel = null;
+        $modalOverlay.classList.remove("is-open");
+    }
+
+    // Clicking the dimmed backdrop cancels whichever dialog is currently shown.
+    $modalOverlay.addEventListener("click", (e) => {
+        if (e.target === $modalOverlay && currentBackdropCancel) {
+            currentBackdropCancel();
+        }
+    });
+
     // Confirmation dialog functions
     function showConfirmDialog(featureType, message, onConfirm, onCancel) {
-        const dialog = q("#confirmDialog");
+        const panel = q("#confirmDialog");
         const titleEl = q("#dialogTitle");
         const messageEl = q(".dialog-message");
         const confirmBtn = q("#confirmProceed");
@@ -360,20 +392,18 @@
             messageEl.textContent = message;
         }
 
-        // Show the dialog
-        dialog.style.display = "flex";
-
         // Handle confirm button
         const handleConfirm = () => {
-            dialog.style.display = "none";
             confirmBtn.removeEventListener("click", handleConfirm);
             cancelBtn.removeEventListener("click", handleCancel);
+            // Don't close here — confirming always opens the snooze dialog next,
+            // and openPanel swaps to it over the same backdrop.
             if (onConfirm) onConfirm();
         };
 
         // Handle cancel button
         const handleCancel = () => {
-            dialog.style.display = "none";
+            closeModal();
             confirmBtn.removeEventListener("click", handleConfirm);
             cancelBtn.removeEventListener("click", handleCancel);
             if (onCancel) onCancel();
@@ -383,18 +413,14 @@
         confirmBtn.addEventListener("click", handleConfirm);
         cancelBtn.addEventListener("click", handleCancel);
 
-        // Close dialog when clicking outside
-        dialog.addEventListener("click", (e) => {
-            if (e.target === dialog) {
-                handleCancel();
-            }
-        });
+        // Show the dialog (backdrop click cancels via the shared overlay).
+        openPanel(panel, handleCancel);
     }
 
     // Snooze options dialog functions
     function showSnoozeOptions(featureType, onSnoozeSelect, onPermanentDisable, onCancel) {
-        const dialog = q("#snoozeDialog");
-        const snoozeOptions = dialog.querySelectorAll(".snooze-option");
+        const panel = q("#snoozeDialog");
+        const snoozeOptions = panel.querySelectorAll(".snooze-option");
         const advancedToggle = q("#advancedToggle");
         const advancedOptions = q("#advancedOptions");
         const permanentBtn = q("#permanentDisable");
@@ -416,23 +442,24 @@
         // Handle snooze option selection
         const handleSnoozeSelect = (e) => {
             const duration = e.currentTarget.getAttribute("data-duration");
-            dialog.style.display = "none";
             removeEventListeners();
             collapseAdvancedOptions();
+            // Selecting a duration opens the countdown next; openPanel swaps to
+            // it over the same backdrop, so we don't close here.
             if (onSnoozeSelect) onSnoozeSelect(duration);
         };
 
         // Handle permanent disable
         const handlePermanentDisable = () => {
-            dialog.style.display = "none";
             removeEventListeners();
             collapseAdvancedOptions();
+            // Opens the countdown next; openPanel swaps over the same backdrop.
             if (onPermanentDisable) onPermanentDisable();
         };
 
         // Handle cancel
         const handleCancel = () => {
-            dialog.style.display = "none";
+            closeModal();
             removeEventListeners();
             collapseAdvancedOptions();
             if (onCancel) onCancel();
@@ -448,10 +475,6 @@
             cancelBtn.removeEventListener("click", handleCancel);
         }
 
-        // Show the dialog
-        collapseAdvancedOptions();
-        dialog.style.display = "flex";
-
         // Add event listeners
         snoozeOptions.forEach((option) => {
             option.addEventListener("click", handleSnoozeSelect);
@@ -460,12 +483,9 @@
         permanentBtn.addEventListener("click", handlePermanentDisable);
         cancelBtn.addEventListener("click", handleCancel);
 
-        // Close dialog when clicking outside
-        dialog.addEventListener("click", (e) => {
-            if (e.target === dialog) {
-                handleCancel();
-            }
-        });
+        // Show the dialog (backdrop click cancels via the shared overlay).
+        collapseAdvancedOptions();
+        openPanel(panel, handleCancel);
     }
 
     function getCountdownPromptPool(seconds) {
@@ -494,7 +514,7 @@
 
     // Countdown dialog functions
     function showCountdownDialog(seconds, onComplete, onCancel, prompts = []) {
-        const dialog = q("#countdownDialog");
+        const panel = q("#countdownDialog");
         const countdownNumber = q("#countdownNumber");
         const countdownLabel = q(".countdown-label");
         const countdownMessage = q(".countdown-message");
@@ -542,7 +562,7 @@
         // Cleanup all listeners and intervals
         function cleanup() {
             clearInterval(countdownInterval);
-            dialog.style.display = "none";
+            closeModal();
             countdownMessage?.classList.remove("countdown-message-fade");
             cancelBtn.removeEventListener("click", handleCancel);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -576,8 +596,8 @@
             }
         };
 
-        // Show the dialog
-        dialog.style.display = "flex";
+        // Show the dialog (backdrop click cancels via the shared overlay).
+        openPanel(panel, handleCancel);
 
         // Set initial countdown display
         formatCountdown(currentSeconds);
@@ -590,13 +610,6 @@
 
         // Reset countdown when user leaves the popup
         document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        // Close dialog when clicking outside (cancel countdown)
-        dialog.addEventListener("click", (e) => {
-            if (e.target === dialog) {
-                handleCancel();
-            }
-        });
     }
 
     // Helper function to calculate snooze end time
