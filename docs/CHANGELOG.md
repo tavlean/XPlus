@@ -10,7 +10,7 @@ All notable changes to XPlus will be documented in this file.
 
 ### Improvements
 
-- **Seamless Dialog Transitions**: The confirm, break-options, and countdown dialogs now share a single backdrop, so stepping between them no longer flashes the settings screen — the dim stays constant while the panel crossfades in.
+- **Seamless Dialog Transitions**: The confirm, break-options, and countdown dialogs now share a single backdrop, so stepping between them no longer flashes the settings screen; the dim stays constant while the panel crossfades in.
 - **Visual Refresh**: Replaced the blue button and toggle accents with a Tailwind zinc palette (light primary button, monochrome dark-grey toggle) and swapped the gold accent for amber.
 - **Tighter Copy**: Renamed "Home Feed Guard" to "Home Guard", clarified the guard descriptions and snooze message, abbreviated durations (5 min, 1 hr), and enlarged the duration numbers.
 - **Cleaner Popup**: Removed all emoji from the popup UI and dropped CSS rules and keyframes left unused by the icon and animation changes.
