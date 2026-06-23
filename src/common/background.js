@@ -16,6 +16,10 @@ const MAX_BREAK_HISTORY_EVENTS = 5000;
 // How long before a break ends to warn the user, so they can wrap up or open
 // anything they want to keep before the guard starts redirecting again.
 const SNOOZE_WARNING_LEAD_MS = 15 * 1000;
+// Safety net: if the chained re-enable timer is lost (e.g. the service worker is
+// killed during the lead window), this alarm re-enables the guard. Placed well
+// after the end time so it can't collapse into the warning alarm.
+const SNOOZE_BACKSTOP_MS = 60 * 1000;
 
 // Helper functions for safe storage operations
 function safeStorageGet(keys, callback) {
@@ -158,6 +162,8 @@ function initializeDNRRules() {
 // Snooze timer management functions for home redirect
 function handleHomeSnoozeExpiration() {
     console.log("Handling home snooze expiration...");
+    chrome.alarms.clear("homeSnoozeWarning");
+    chrome.alarms.clear("homeSnoozeExpired");
 
     safeStorageGet(["snoozeEndTime"], (items) => {
         finalizeBreakSession("home", items.snoozeEndTime || Date.now(), () => {
@@ -189,6 +195,8 @@ function handleHomeSnoozeExpiration() {
 // Snooze timer management functions for explore redirect
 function handleExploreSnoozeExpiration() {
     console.log("Handling explore snooze expiration...");
+    chrome.alarms.clear("exploreSnoozeWarning");
+    chrome.alarms.clear("exploreSnoozeExpired");
 
     safeStorageGet(["exploreSnoozeEndTime"], (items) => {
         finalizeBreakSession("explore", items.exploreSnoozeEndTime || Date.now(), () => {
@@ -322,14 +330,40 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     } else if (alarm.name === "exploreSnoozeExpired") {
         handleExploreSnoozeExpiration();
     } else if (alarm.name === "homeSnoozeWarning") {
-        showSnoozeEndingSoonNotification("home");
+        handleSnoozeWarning("home");
     } else if (alarm.name === "exploreSnoozeWarning") {
-        showSnoozeEndingSoonNotification("explore");
+        handleSnoozeWarning("explore");
     }
 });
 
-// Schedule the expiration alarm plus an earlier heads-up warning alarm for a
-// feature. Clears any existing alarms first so re-snoozing is idempotent.
+// When the warning alarm fires: notify, then re-enable the guard a short time
+// later. The re-enable is chained off the warning (instead of a second alarm
+// ~15s apart) because chrome.alarms is too coarse to keep two alarms that close
+// from collapsing into one — which is what fired the notification and the
+// redirect at the same instant. Measuring the delay from when the warning
+// actually fired keeps the gap correct even if Chrome delivered the alarm late.
+function handleSnoozeWarning(featureType) {
+    showSnoozeEndingSoonNotification(featureType);
+
+    setTimeout(() => {
+        const key = featureType === "home" ? "snoozeEndTime" : "exploreSnoozeEndTime";
+        safeStorageGet([key], (items) => {
+            const end = items[key];
+            // Re-enable only if this break is still active and has reached its
+            // end — guards against a stale timer from a cancelled/replaced break.
+            if (!end || Date.now() < end - 1000) return;
+            if (featureType === "home") {
+                handleHomeSnoozeExpiration();
+            } else {
+                handleExploreSnoozeExpiration();
+            }
+        });
+    }, SNOOZE_WARNING_LEAD_MS);
+}
+
+// Schedule the break-ending warning alarm, plus a backstop expiration alarm in
+// case the chained re-enable is lost. Clears existing alarms first so
+// re-snoozing is idempotent.
 function scheduleSnoozeAlarms(featureType, snoozeEndTime) {
     const expiredName = featureType === "home" ? "homeSnoozeExpired" : "exploreSnoozeExpired";
     const warningName = featureType === "home" ? "homeSnoozeWarning" : "exploreSnoozeWarning";
@@ -337,12 +371,16 @@ function scheduleSnoozeAlarms(featureType, snoozeEndTime) {
     chrome.alarms.clear(expiredName);
     chrome.alarms.clear(warningName);
 
-    chrome.alarms.create(expiredName, { when: snoozeEndTime });
-
-    // Only schedule the heads-up if it is still in the future.
     const warningTime = snoozeEndTime - SNOOZE_WARNING_LEAD_MS;
     if (warningTime > Date.now()) {
+        // Normal case: warn first, then the chained timer re-enables ~lead later.
         chrome.alarms.create(warningName, { when: warningTime });
+        // Backstop, placed well past the end so it can't collapse into the warning.
+        chrome.alarms.create(expiredName, { when: snoozeEndTime + SNOOZE_BACKSTOP_MS });
+    } else {
+        // Already inside the lead window (e.g. restored late): just re-enable at
+        // the scheduled end, no heads-up.
+        chrome.alarms.create(expiredName, { when: snoozeEndTime });
     }
 }
 

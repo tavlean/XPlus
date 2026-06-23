@@ -9,8 +9,6 @@
     const ACTIVE_BREAKS_KEY = "activeFocusBreaks";
     const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
     const MAX_BREAK_HISTORY_EVENTS = 5000;
-    // Heads-up before a break ends (keep in sync with background.js).
-    const SNOOZE_WARNING_LEAD_MS = 15 * 1000;
     const SNOOZE_DURATIONS = {
         5: { minutes: 5, label: "5 min", baseWaitSeconds: 10 },
         15: { minutes: 15, label: "15 min", baseWaitSeconds: 30 },
@@ -682,22 +680,17 @@
                                     $homeRedirect.checked = false;
                                     updateSnoozeStatusIndicator();
 
-                                    // Set up alarms for home snooze: a heads-up
-                                    // warning plus the expiration itself.
-                                    if (chrome.alarms) {
-                                        chrome.alarms.clear("homeSnoozeExpired", () => {
-                                            chrome.alarms.create("homeSnoozeExpired", {
-                                                when: snoozeEndTime,
-                                            });
+                                    // Let the background schedule the warning and
+                                    // re-enable; it owns the precise timing (see
+                                    // scheduleSnoozeAlarms in background.js).
+                                    try {
+                                        chrome.runtime.sendMessage({
+                                            action: "setupSnoozeAlarm",
+                                            featureType: "home",
+                                            snoozeEndTime,
                                         });
-                                        const homeWarnAt = snoozeEndTime - SNOOZE_WARNING_LEAD_MS;
-                                        chrome.alarms.clear("homeSnoozeWarning", () => {
-                                            if (homeWarnAt > Date.now()) {
-                                                chrome.alarms.create("homeSnoozeWarning", {
-                                                    when: homeWarnAt,
-                                                });
-                                            }
-                                        });
+                                    } catch (e) {
+                                        // Ignored; background restores on startup.
                                     }
                                 } else if (featureType === "explore") {
                                     if ($exploreRedirect) {
@@ -705,23 +698,17 @@
                                     }
                                     updateExploreSnoozeStatusIndicator();
 
-                                    // Set up alarms for explore snooze: a heads-up
-                                    // warning plus the expiration itself.
-                                    if (chrome.alarms) {
-                                        chrome.alarms.clear("exploreSnoozeExpired", () => {
-                                            chrome.alarms.create("exploreSnoozeExpired", {
-                                                when: snoozeEndTime,
-                                            });
+                                    // Let the background schedule the warning and
+                                    // re-enable; it owns the precise timing (see
+                                    // scheduleSnoozeAlarms in background.js).
+                                    try {
+                                        chrome.runtime.sendMessage({
+                                            action: "setupSnoozeAlarm",
+                                            featureType: "explore",
+                                            snoozeEndTime,
                                         });
-                                        const exploreWarnAt =
-                                            snoozeEndTime - SNOOZE_WARNING_LEAD_MS;
-                                        chrome.alarms.clear("exploreSnoozeWarning", () => {
-                                            if (exploreWarnAt > Date.now()) {
-                                                chrome.alarms.create("exploreSnoozeWarning", {
-                                                    when: exploreWarnAt,
-                                                });
-                                            }
-                                        });
+                                    } catch (e) {
+                                        // Ignored; background restores on startup.
                                     }
                                 }
 
