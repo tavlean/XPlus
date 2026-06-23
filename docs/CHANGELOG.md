@@ -2,6 +2,14 @@
 
 All notable changes to XPlus will be documented in this file.
 
+## [1.7.3] - 2026-06-24
+
+### Fixed
+
+- **Break-Ending Warning Timing**: The "break ending soon" notification and the redirect could arrive at the same moment instead of about 15 seconds apart, leaving no time to wrap up. The warning and the re-enable were scheduled as two alarms only 15 seconds apart, which the browser's coarse alarm timing collapsed into a single firing. The redirect now reliably follows the notification by about 15 seconds, with a fallback in case the background worker is evicted during the gap.
+
+---
+
 ## [1.7.2] - 2026-06-19
 
 ### Added
